@@ -1,0 +1,33 @@
+/**
+ * Content Module Public API
+ * Re-exports all public types and functions for content reading
+ */
+
+// Types
+export type {
+    Article,
+    ArticleFrontmatter,
+    ParsedArticle,
+    ContentType,
+    Section,
+} from './types';
+
+// Error classes
+export {
+    ContentValidationError,
+    ContentParseError,
+} from './types';
+
+// Reader functions
+export {
+    getAllArticles,
+    getArticleBySlug,
+    getArticlesBySection,
+    getFeaturedArticles,
+    getArticlesByTag,
+    getAllTags,
+    getValidSections,
+} from './reader';
+
+// Parser (for advanced use cases)
+export { parseMarkdown } from './parser';
