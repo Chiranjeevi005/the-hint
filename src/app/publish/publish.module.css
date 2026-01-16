@@ -1,0 +1,306 @@
+/**
+ * Publishing Console Styles
+ * Clean, professional styling for the internal publishing tool
+ */
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+    min-height: 100vh;
+}
+
+.header {
+    margin-bottom: 2.5rem;
+    border-bottom: 2px solid #1a1a1a;
+    padding-bottom: 1.5rem;
+}
+
+.title {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0 0 0.5rem 0;
+    letter-spacing: -0.02em;
+}
+
+.subtitle {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 1rem;
+    color: #666;
+    margin: 0;
+}
+
+/* Form Layout */
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.formRow {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+@media (max-width: 600px) {
+    .formRow {
+        grid-template-columns: 1fr;
+    }
+}
+
+.formGroupCheckbox {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 1rem;
+    background: #f8f8f8;
+    border-radius: 6px;
+}
+
+/* Labels */
+.label {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.required {
+    color: #c41a16;
+}
+
+/* Input Fields */
+.input,
+.select,
+.textarea {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 1rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: #fff;
+    color: #1a1a1a;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+    outline: none;
+    border-color: #1a1a1a;
+    box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.1);
+}
+
+.input::placeholder,
+.textarea::placeholder {
+    color: #999;
+}
+
+.inputError {
+    border-color: #c41a16;
+}
+
+.inputError:focus {
+    border-color: #c41a16;
+    box-shadow: 0 0 0 3px rgba(196, 26, 22, 0.15);
+}
+
+.select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23666' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.75rem center;
+    background-repeat: no-repeat;
+    background-size: 1.25em 1.25em;
+    padding-right: 2.5rem;
+}
+
+.textarea {
+    resize: vertical;
+    min-height: 200px;
+    line-height: 1.6;
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+    font-size: 0.9375rem;
+}
+
+/* Checkbox */
+.checkboxLabel {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+}
+
+.checkbox {
+    width: 1.125rem;
+    height: 1.125rem;
+    cursor: pointer;
+    accent-color: #1a1a1a;
+}
+
+.checkboxText {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: #1a1a1a;
+}
+
+/* Field Messages */
+.fieldError {
+    font-size: 0.8125rem;
+    color: #c41a16;
+    font-weight: 500;
+}
+
+.fieldWarning {
+    font-size: 0.8125rem;
+    color: #b35c00;
+    font-weight: 500;
+}
+
+.fieldHint {
+    font-size: 0.8125rem;
+    color: #666;
+}
+
+/* Buttons */
+.formActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e5e5e5;
+}
+
+.submitButton,
+.resetButton {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    padding: 0.875rem 1.75rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.submitButton {
+    background: #1a1a1a;
+    color: #fff;
+    border: 2px solid #1a1a1a;
+}
+
+.submitButton:hover:not(:disabled) {
+    background: #333;
+    border-color: #333;
+}
+
+.submitButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.resetButton {
+    background: transparent;
+    color: #666;
+    border: 2px solid #ddd;
+}
+
+.resetButton:hover:not(:disabled) {
+    color: #1a1a1a;
+    border-color: #999;
+}
+
+.resetButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Banners */
+.successBanner {
+    background: #e8f5e9;
+    border: 1px solid #4caf50;
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.successContent {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.successIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: #4caf50;
+    color: #fff;
+    border-radius: 50%;
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.successContent strong {
+    display: block;
+    color: #2e7d32;
+    margin-bottom: 0.25rem;
+}
+
+.successContent p {
+    margin: 0;
+    color: #1b5e20;
+    font-size: 0.875rem;
+}
+
+.articleLink {
+    color: #1b5e20;
+    text-decoration: underline;
+    font-weight: 500;
+}
+
+.articleLink:hover {
+    color: #0d3c13;
+}
+
+.errorBanner {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: #ffebee;
+    border: 1px solid #c41a16;
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 2rem;
+}
+
+.errorIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: #c41a16;
+    color: #fff;
+    border-radius: 50%;
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.errorBanner strong {
+    color: #c41a16;
+}
