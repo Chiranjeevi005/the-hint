@@ -39,3 +39,14 @@ export type {
 } from './homepage';
 
 export { getHomepageData } from './homepage';
+
+// Section page data composition
+export type {
+    SectionPageData,
+    SectionInfo,
+} from './section';
+
+export {
+    getSectionPageData,
+    InvalidSectionError,
+} from './section';
