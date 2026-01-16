@@ -50,3 +50,16 @@ export {
     getSectionPageData,
     InvalidSectionError,
 } from './section';
+
+// Article page data composition
+export type {
+    ArticlePageData,
+} from './article';
+
+export {
+    getArticlePageData,
+    InvalidArticleSectionError,
+    ArticleNotFoundError,
+    InvalidSlugError,
+    SectionMismatchError,
+} from './article';
