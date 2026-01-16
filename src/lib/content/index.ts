@@ -31,3 +31,11 @@ export {
 
 // Parser (for advanced use cases)
 export { parseMarkdown } from './parser';
+
+// Homepage data composition
+export type {
+    HomepageData,
+    HomepageSections,
+} from './homepage';
+
+export { getHomepageData } from './homepage';
