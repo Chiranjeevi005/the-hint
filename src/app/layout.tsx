@@ -1,20 +1,41 @@
+/**
+ * Root Layout
+ * 
+ * The Hint - A Broadsheet Newspaper
+ * Uses Playfair Display for headlines and Inter for body text
+ */
+
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Serif font for headlines - authoritative, editorial feel
+const playfairDisplay = Playfair_Display({
+  variable: "--font-serif",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+// Sans-serif for body and UI - clean, readable
+const inter = Inter({
+  variable: "--font-sans",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
   title: "The Hint",
-  description: "Serious news publication",
+  description: "Authoritative news coverage with integrity and depth",
+  keywords: ["news", "politics", "world affairs", "crime", "court", "opinion"],
+  authors: [{ name: "The Hint Editorial Board" }],
+  openGraph: {
+    title: "The Hint",
+    description: "Authoritative news coverage with integrity and depth",
+    type: "website",
+    siteName: "The Hint",
+  },
 };
 
 export default function RootLayout({
@@ -24,9 +45,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${playfairDisplay.variable} ${inter.variable}`}>
         {children}
       </body>
     </html>

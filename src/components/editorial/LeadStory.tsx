@@ -1,11 +1,23 @@
 /**
  * LeadStory Component
  * 
- * Renders the dominant lead story with maximum visual prominence.
- * Receives fully prepared article data via props.
+ * The dominant lead story with maximum visual prominence.
+ * Following broadsheet newspaper layout:
+ * 
+ * ORDER:
+ * a) Section label (small uppercase, muted)
+ * b) Very large headline (H1)
+ * c) Large editorial image below headline
+ * d) Caption below image
+ * e) Date centered below caption
+ * 
+ * This is the most prominent visual element on the page.
+ * NO sidebar beside the lead.
  * 
  * NO business logic, NO imports from lib/content.
  */
+
+import Link from "next/link";
 
 interface LeadStoryProps {
     article: {
@@ -23,49 +35,70 @@ export function LeadStory({ article }: LeadStoryProps) {
         return null;
     }
 
-    const formattedDate = new Date(article.publishedAt).toLocaleDateString('en-US', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
+    const formattedDate = new Date(article.publishedAt).toLocaleDateString("en-US", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
     });
 
     const sectionLabel = article.section
-        .replace('-', ' ')
+        .replace("-", " ")
         .replace(/\b\w/g, (c) => c.toUpperCase());
 
+    const articleUrl = `/${article.section}/${article.id}`;
+
     return (
-        <section className="mb-16">
-            <article className="border-b-4 border-black pb-8">
+        <section className="section-spacing" aria-labelledby="lead-story-heading">
+            <article>
                 {/* Section Label */}
-                <div className="mb-4">
-                    <span className="text-sm font-bold uppercase tracking-widest">
-                        {sectionLabel}
-                    </span>
+                <div className="mb-3">
+                    <span className="section-label">{sectionLabel}</span>
                 </div>
 
                 {/* Dominant Headline */}
-                <h1 className="text-5xl font-black leading-tight mb-6 max-w-4xl md:text-6xl lg:text-7xl">
-                    {article.title}
-                </h1>
+                <Link href={articleUrl} className="article-link">
+                    <h2 id="lead-story-heading" className="headline-xl mb-4">
+                        {article.title}
+                    </h2>
+                </Link>
 
-                {/* Subtitle / Deck */}
-                <p className="text-xl leading-relaxed mb-6 max-w-3xl md:text-2xl">
+                {/* Large Editorial Image */}
+                <Link href={articleUrl} className="article-link block mb-3">
+                    <div
+                        className="image-placeholder article-image"
+                        style={{
+                            aspectRatio: "16/9",
+                            width: "100%",
+                            maxHeight: "500px"
+                        }}
+                        role="img"
+                        aria-label={`Illustration for: ${article.title}`}
+                    >
+                        <span>Editorial Image</span>
+                    </div>
+                </Link>
+
+                {/* Caption / Subtitle */}
+                <p className="body-text mb-3 max-w-3xl">
                     {article.subtitle}
                 </p>
 
-                {/* Metadata */}
-                <div className="flex flex-wrap items-center gap-4 text-sm">
-                    <time dateTime={article.publishedAt}>
+                {/* Date - Centered */}
+                <div className="text-center">
+                    <time dateTime={article.publishedAt} className="meta-text">
                         {formattedDate}
                     </time>
-                    {article.contentType !== 'news' && (
-                        <span className="font-semibold uppercase tracking-wide">
+                    {article.contentType !== "news" && (
+                        <span className="meta-text ml-3 uppercase font-medium">
                             {article.contentType}
                         </span>
                     )}
                 </div>
             </article>
+
+            {/* Section Divider */}
+            <hr className="section-divider mt-8" />
         </section>
     );
 }

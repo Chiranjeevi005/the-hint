@@ -1,25 +1,404 @@
 @import "tailwindcss";
 
+/* ============================================================================
+   THE HINT - BROADSHEET NEWSPAPER DESIGN SYSTEM
+   A classic, authoritative editorial design inspired by print newspapers
+   ============================================================================ */
+
+/* ----------------------------------------------------------------------------
+   COLOR SYSTEM (LOCKED)
+   ---------------------------------------------------------------------------- */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Primary Colors */
+  --color-ink: #111111;           /* Primary text */
+  --color-ink-secondary: #2B2B2B; /* Dark gray for secondary text */
+  --color-paper: #F7F6F2;         /* Main background */
+  --color-surface: #FFFFFF;       /* Content surface */
+  
+  /* Supporting Colors */
+  --color-muted: #6B6B6B;         /* Muted text, captions */
+  --color-border: #D9D9D9;        /* Borders, dividers */
+  --color-accent: #8A8A8A;        /* Labels, icons */
+  --color-footer-bg: #5F5F5A;     /* Footer background */
+  
+  /* Legacy compatibility */
+  --background: var(--color-paper);
+  --foreground: var(--color-ink);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
+/* No dark mode - broadsheet is always light */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: var(--color-paper);
+    --foreground: var(--color-ink);
   }
 }
 
+/* ----------------------------------------------------------------------------
+   TYPOGRAPHY
+   ---------------------------------------------------------------------------- */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-serif: 'Playfair Display', 'Libre Baskerville', Georgia, serif;
+  --font-sans: 'Inter', 'Source Sans 3', system-ui, sans-serif;
+}
+
+/* ----------------------------------------------------------------------------
+   BASE STYLES
+   ---------------------------------------------------------------------------- */
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.6;
+  letter-spacing: -0.01em;
+}
+
+/* ----------------------------------------------------------------------------
+   HEADLINE TYPOGRAPHY
+   ---------------------------------------------------------------------------- */
+.headline-xl {
+  font-family: var(--font-serif);
+  font-size: clamp(2.5rem, 5vw, 3rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: var(--color-ink);
+}
+
+.headline-lg {
+  font-family: var(--font-serif);
+  font-size: clamp(1.625rem, 3vw, 1.875rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+}
+
+.headline-md {
+  font-family: var(--font-serif);
+  font-size: clamp(1.125rem, 2vw, 1.25rem);
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--color-ink);
+}
+
+.headline-sm {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--color-ink);
+}
+
+/* ----------------------------------------------------------------------------
+   BODY TEXT & UI TYPOGRAPHY
+   ---------------------------------------------------------------------------- */
+.body-text {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.65;
+  color: var(--color-ink-secondary);
+}
+
+.caption-text {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--color-muted);
+}
+
+.meta-text {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  color: var(--color-muted);
+}
+
+.section-label {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-accent);
+}
+
+/* ----------------------------------------------------------------------------
+   MASTHEAD STYLES
+   ---------------------------------------------------------------------------- */
+.masthead-title {
+  font-family: var(--font-serif);
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-ink);
+}
+
+.nav-link {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-ink-secondary);
+  text-decoration: none;
+  padding: 0.5rem 0;
+  transition: color 0.15s ease;
+}
+
+.nav-link:hover {
+  color: var(--color-ink);
+}
+
+/* ----------------------------------------------------------------------------
+   LAYOUT UTILITIES
+   ---------------------------------------------------------------------------- */
+.container-editorial {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+}
+
+.section-divider {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: 0;
+}
+
+.section-divider-thick {
+  border: none;
+  border-top: 2px solid var(--color-ink);
+  margin: 0;
+}
+
+.section-spacing {
+  margin-bottom: 2.5rem;
+}
+
+@media (min-width: 768px) {
+  .section-spacing {
+    margin-bottom: 3rem;
+  }
+}
+
+/* ----------------------------------------------------------------------------
+   ARTICLE CARDS & LINKS
+   ---------------------------------------------------------------------------- */
+.article-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.article-link:hover .headline-xl,
+.article-link:hover .headline-lg,
+.article-link:hover .headline-md,
+.article-link:hover .headline-sm {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+
+.article-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  transition: filter 0.2s ease;
+}
+
+.article-link:hover .article-image {
+  filter: brightness(0.92);
+}
+
+/* ----------------------------------------------------------------------------
+   GRID SYSTEM
+   ---------------------------------------------------------------------------- */
+.grid-12 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .grid-12 {
+    grid-template-columns: repeat(12, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+.col-span-full { grid-column: 1 / -1; }
+
+@media (min-width: 768px) {
+  .col-span-8 { grid-column: span 8; }
+  .col-span-6 { grid-column: span 6; }
+  .col-span-4 { grid-column: span 4; }
+  .col-span-3 { grid-column: span 3; }
+}
+
+/* ----------------------------------------------------------------------------
+   WIRE-STYLE COMPACT LISTS
+   ---------------------------------------------------------------------------- */
+.wire-item {
+  display: flex;
+  gap: 0.875rem;
+  padding: 0.875rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.wire-item:last-child {
+  border-bottom: none;
+}
+
+.wire-thumbnail {
+  flex-shrink: 0;
+  width: 80px;
+  height: 56px;
+  object-fit: cover;
+}
+
+.wire-content {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ----------------------------------------------------------------------------
+   OPINION SECTION STYLES
+   ---------------------------------------------------------------------------- */
+.opinion-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--color-border);
+}
+
+.byline {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-muted);
+  font-style: italic;
+}
+
+/* ----------------------------------------------------------------------------
+   FOOTER STYLES
+   ---------------------------------------------------------------------------- */
+.footer-bg {
+  background: var(--color-footer-bg);
+  color: var(--color-paper);
+}
+
+.footer-heading {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-paper);
+  margin-bottom: 1rem;
+}
+
+.footer-link {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: rgba(247, 246, 242, 0.8);
+  text-decoration: none;
+  display: block;
+  padding: 0.25rem 0;
+  transition: color 0.15s ease;
+}
+
+.footer-link:hover {
+  color: var(--color-paper);
+}
+
+.footer-copyright {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: rgba(247, 246, 242, 0.6);
+  text-align: center;
+}
+
+/* ----------------------------------------------------------------------------
+   FOCUS & ACCESSIBILITY
+   ---------------------------------------------------------------------------- */
+:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+}
+
+a:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Skip Link */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 0;
+  background: var(--color-ink);
+  color: var(--color-paper);
+  padding: 0.5rem 1rem;
+  z-index: 100;
+  font-size: 14px;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* ----------------------------------------------------------------------------
+   SECTION HEADERS
+   ---------------------------------------------------------------------------- */
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.section-title {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-ink);
+  white-space: nowrap;
+}
+
+.section-line {
+  flex: 1;
+  height: 1px;
+  background: var(--color-border);
+}
+
+/* ----------------------------------------------------------------------------
+   IMAGE PLACEHOLDERS (for demo without actual images)
+   ---------------------------------------------------------------------------- */
+.image-placeholder {
+  background: linear-gradient(135deg, #e8e7e3 0%, #d4d3cf 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }

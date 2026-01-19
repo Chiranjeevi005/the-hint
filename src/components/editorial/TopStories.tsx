@@ -1,11 +1,19 @@
 /**
  * TopStories Component
  * 
- * Renders the secondary tier of stories below the lead.
- * Receives fully prepared article data via props.
+ * Secondary lead stories below the main lead.
+ * Two stories side-by-side layout:
+ * - Large image on top
+ * - Bold headline
+ * - Short summary
+ * - Date
+ * 
+ * Clearly secondary to the main lead.
  * 
  * NO business logic, NO imports from lib/content.
  */
+
+import Link from "next/link";
 
 interface TopStoryArticle {
     id: string;
@@ -25,55 +33,69 @@ export function TopStories({ articles }: TopStoriesProps) {
         return null;
     }
 
-    return (
-        <section className="mb-16">
-            <h2 className="text-xl font-bold uppercase tracking-wide border-b-2 border-black pb-2 mb-8">
-                Top Stories
-            </h2>
+    // Take first 2 for secondary leads
+    const secondaryLeads = articles.slice(0, 2);
 
-            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-                {articles.map((article, index) => {
-                    const sectionLabel = article.section
-                        .replace('-', ' ')
-                        .replace(/\b\w/g, (c) => c.toUpperCase());
+    return (
+        <section className="section-spacing" aria-labelledby="top-stories-heading">
+            {/* Section Header */}
+            <div className="section-header">
+                <h2 id="top-stories-heading" className="section-title">
+                    Top Stories
+                </h2>
+                <div className="section-line" aria-hidden="true" />
+            </div>
+
+            {/* Two-Column Layout for Secondary Leads */}
+            <div className="grid gap-6 md:grid-cols-2">
+                {secondaryLeads.map((article) => {
+                    const articleUrl = `/${article.section}/${article.id}`;
+                    const formattedDate = new Date(article.publishedAt).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                    });
 
                     return (
-                        <article
-                            key={article.id}
-                            className={`border-b border-neutral-300 pb-6 ${index === 0 ? 'md:col-span-2 lg:col-span-1' : ''
-                                }`}
-                        >
-                            {/* Section Label */}
-                            <div className="mb-2">
-                                <span className="text-xs font-bold uppercase tracking-widest">
-                                    {sectionLabel}
-                                </span>
-                            </div>
+                        <article key={article.id} className="pb-6">
+                            {/* Large Image on Top */}
+                            <Link href={articleUrl} className="article-link block mb-4">
+                                <div
+                                    className="image-placeholder article-image"
+                                    style={{
+                                        aspectRatio: "16/10",
+                                        width: "100%",
+                                    }}
+                                    role="img"
+                                    aria-label={`Illustration for: ${article.title}`}
+                                >
+                                    <span>Editorial Image</span>
+                                </div>
+                            </Link>
 
-                            {/* Headline */}
-                            <h3 className="text-2xl font-bold leading-tight mb-3">
-                                {article.title}
-                            </h3>
+                            {/* Bold Headline */}
+                            <Link href={articleUrl} className="article-link">
+                                <h3 className="headline-lg mb-3">
+                                    {article.title}
+                                </h3>
+                            </Link>
 
-                            {/* Subtitle */}
-                            <p className="text-base leading-relaxed mb-3">
+                            {/* Short Summary */}
+                            <p className="body-text mb-3 line-clamp-2">
                                 {article.subtitle}
                             </p>
 
-                            {/* Timestamp */}
-                            <time
-                                dateTime={article.publishedAt}
-                                className="text-sm"
-                            >
-                                {new Date(article.publishedAt).toLocaleDateString('en-US', {
-                                    month: 'short',
-                                    day: 'numeric',
-                                })}
+                            {/* Date */}
+                            <time dateTime={article.publishedAt} className="meta-text">
+                                {formattedDate}
                             </time>
                         </article>
                     );
                 })}
             </div>
+
+            {/* Section Divider */}
+            <hr className="section-divider mt-4" />
         </section>
     );
 }
