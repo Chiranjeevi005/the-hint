@@ -1,306 +1,291 @@
-/**
- * Publishing Console Styles
- * Clean, professional styling for the internal publishing tool
- */
+/* ============================================================================
+   PUBLISHING CONSOLE DESIGN
+   Private, distraction-free, newspaper editorial desk
+   ============================================================================ */
 
-.container {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 3rem 2rem;
-    min-height: 100vh;
+.page {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    overflow: hidden;
 }
 
-.header {
-    margin-bottom: 2.5rem;
-    border-bottom: 2px solid #1a1a1a;
-    padding-bottom: 1.5rem;
+/* ----------------------------------------------------------------------------
+   TOP BAR
+   ---------------------------------------------------------------------------- */
+.topBar {
+    flex: 0 0 48px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 0 2rem;
+    border-bottom: 1px solid var(--color-border);
+    gap: 2rem;
+    background: var(--color-paper);
 }
 
-.title {
-    font-family: Georgia, 'Times New Roman', serif;
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: #1a1a1a;
-    margin: 0 0 0.5rem 0;
-    letter-spacing: -0.02em;
+.topBarAction {
+    background: none;
+    border: none;
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-muted);
+    cursor: pointer;
+    padding: 0.25rem 0;
+    transition: color 0.15s ease;
 }
 
-.subtitle {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    font-size: 1rem;
-    color: #666;
-    margin: 0;
+.topBarAction:hover {
+    color: var(--color-ink);
 }
 
-/* Form Layout */
-.form {
+/* ----------------------------------------------------------------------------
+   MAIN LAYOUT (Columns)
+   ---------------------------------------------------------------------------- */
+.mainLayout {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    overflow: hidden;
+}
+
+/* ----------------------------------------------------------------------------
+   LEFT COLUMN: WRITING CANVAS
+   ---------------------------------------------------------------------------- */
+.writingCanvas {
+    padding: 3rem 4rem;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    max-width: 900px;
+    margin: 0 auto;
+    width: 100%;
 }
 
-.formGroup {
+/* Inputs */
+.headlineInput {
+    font-family: var(--font-serif);
+    font-size: clamp(2.5rem, 4vw, 3.5rem);
+    font-weight: 800;
+    line-height: 1.1;
+    color: var(--color-ink);
+    border: none;
+    background: transparent;
+    width: 100%;
+    outline: none;
+    padding: 0;
+}
+
+.headlineInput::placeholder {
+    color: #ccc;
+}
+
+.subheadlineInput {
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    font-weight: 400;
+    font-style: italic;
+    line-height: 1.4;
+    color: var(--color-ink-secondary);
+    border: none;
+    background: transparent;
+    width: 100%;
+    outline: none;
+    padding: 0;
+}
+
+.subheadlineInput::placeholder {
+    color: #ccc;
+}
+
+.bodyEditor {
+    font-family: var(--font-serif);
+    font-size: 1.125rem;
+    line-height: 1.75;
+    color: var(--color-ink-secondary);
+    border: none;
+    background: transparent;
+    width: 100%;
+    outline: none;
+    resize: none;
+    min-height: 500px;
+    padding: 0;
+    margin-top: 1rem;
+    /* Limit line width for comfortable reading */
+    max-width: 70ch;
+}
+
+.bodyEditor::placeholder {
+    color: #ccc;
+}
+
+/* Quote Style Reference */
+.quoteStyle {
+    border-left: 2px solid var(--color-border);
+    padding-left: 1rem;
+    margin-top: 1rem;
+    font-family: var(--font-serif);
+    font-size: 1rem;
+    font-style: italic;
+    color: var(--color-muted);
+}
+
+/* ----------------------------------------------------------------------------
+   RIGHT COLUMN: PUBLISHING CONTROLS
+   ---------------------------------------------------------------------------- */
+.controlsPanel {
+    border-left: 1px solid var(--color-border);
+    padding: 1.5rem 1.5rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    background: #fff;
+}
+
+.controlGroup {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
 }
 
-.formRow {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-}
-
-@media (max-width: 600px) {
-    .formRow {
-        grid-template-columns: 1fr;
-    }
-}
-
-.formGroupCheckbox {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    padding: 1rem;
-    background: #f8f8f8;
-    border-radius: 6px;
-}
-
-/* Labels */
 .label {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    font-size: 0.875rem;
+    font-family: var(--font-sans);
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
     font-weight: 600;
-    color: #333;
-}
-
-.required {
-    color: #c41a16;
-}
-
-/* Input Fields */
-.input,
-.select,
-.textarea {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    font-size: 1rem;
-    padding: 0.75rem 1rem;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    background: #fff;
-    color: #1a1a1a;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.input:focus,
-.select:focus,
-.textarea:focus {
-    outline: none;
-    border-color: #1a1a1a;
-    box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.1);
-}
-
-.input::placeholder,
-.textarea::placeholder {
-    color: #999;
-}
-
-.inputError {
-    border-color: #c41a16;
-}
-
-.inputError:focus {
-    border-color: #c41a16;
-    box-shadow: 0 0 0 3px rgba(196, 26, 22, 0.15);
-}
-
-.select {
-    cursor: pointer;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23666' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-    background-position: right 0.75rem center;
-    background-repeat: no-repeat;
-    background-size: 1.25em 1.25em;
-    padding-right: 2.5rem;
-}
-
-.textarea {
-    resize: vertical;
-    min-height: 200px;
-    line-height: 1.6;
-    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
-    font-size: 0.9375rem;
-}
-
-/* Checkbox */
-.checkboxLabel {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    cursor: pointer;
-}
-
-.checkbox {
-    width: 1.125rem;
-    height: 1.125rem;
-    cursor: pointer;
-    accent-color: #1a1a1a;
-}
-
-.checkboxText {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    font-size: 0.9375rem;
-    font-weight: 500;
-    color: #1a1a1a;
-}
-
-/* Field Messages */
-.fieldError {
-    font-size: 0.8125rem;
-    color: #c41a16;
-    font-weight: 500;
-}
-
-.fieldWarning {
-    font-size: 0.8125rem;
-    color: #b35c00;
-    font-weight: 500;
-}
-
-.fieldHint {
-    font-size: 0.8125rem;
-    color: #666;
-}
-
-/* Buttons */
-.formActions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
-    margin-top: 1rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid #e5e5e5;
-}
-
-.submitButton,
-.resetButton {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    font-size: 0.9375rem;
-    font-weight: 600;
-    padding: 0.875rem 1.75rem;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.15s ease;
-}
-
-.submitButton {
-    background: #1a1a1a;
-    color: #fff;
-    border: 2px solid #1a1a1a;
-}
-
-.submitButton:hover:not(:disabled) {
-    background: #333;
-    border-color: #333;
-}
-
-.submitButton:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-.resetButton {
-    background: transparent;
-    color: #666;
-    border: 2px solid #ddd;
-}
-
-.resetButton:hover:not(:disabled) {
-    color: #1a1a1a;
-    border-color: #999;
-}
-
-.resetButton:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-/* Banners */
-.successBanner {
-    background: #e8f5e9;
-    border: 1px solid #4caf50;
-    border-radius: 8px;
-    padding: 1.25rem 1.5rem;
-    margin-bottom: 2rem;
-}
-
-.successContent {
-    display: flex;
-    align-items: flex-start;
-    gap: 1rem;
-}
-
-.successIcon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    background: #4caf50;
-    color: #fff;
-    border-radius: 50%;
-    font-size: 0.75rem;
-    font-weight: 700;
-    flex-shrink: 0;
-}
-
-.successContent strong {
-    display: block;
-    color: #2e7d32;
+    color: var(--color-muted);
     margin-bottom: 0.25rem;
 }
 
-.successContent p {
-    margin: 0;
-    color: #1b5e20;
+.select,
+.input {
+    width: 100%;
+    padding: 0.625rem;
+    font-family: var(--font-sans);
     font-size: 0.875rem;
+    border: 1px solid var(--color-border);
+    border-radius: 2px;
+    /* Mostly square */
+    background: white;
+    color: var(--color-ink);
+    appearance: none;
 }
 
-.articleLink {
-    color: #1b5e20;
-    text-decoration: underline;
-    font-weight: 500;
+/* Custom dropdown arrow */
+.select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23333' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.75rem center;
+    background-repeat: no-repeat;
+    background-size: 1em 1em;
+    padding-right: 2.5rem;
 }
 
-.articleLink:hover {
-    color: #0d3c13;
+.select:focus,
+.input:focus {
+    outline: 2px solid var(--color-ink);
+    border-color: var(--color-ink);
 }
 
-.errorBanner {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    background: #ffebee;
-    border: 1px solid #c41a16;
-    border-radius: 8px;
-    padding: 1rem 1.25rem;
-    margin-bottom: 2rem;
+/* Tags Pill Style */
+.input {
+    border-radius: 50px;
+    /* Pill */
+    padding-left: 1rem;
+    padding-right: 1rem;
+    background: #f1f1f1;
+    border-color: transparent;
 }
 
-.errorIcon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    background: #c41a16;
-    color: #fff;
-    border-radius: 50%;
+.input:focus {
+    background: #fff;
+    border-color: var(--color-ink);
+    outline: none;
+}
+
+/* Warning for Opinion */
+.fieldWarning {
     font-size: 0.75rem;
-    font-weight: 700;
-    flex-shrink: 0;
+    color: #e65100;
+    margin-top: 0.25rem;
+    display: block;
 }
 
-.errorBanner strong {
-    color: #c41a16;
+/* Featured Toggle */
+.toggleLabel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    color: var(--color-ink);
+    padding: 0.5rem 0;
+}
+
+/* Publish Button */
+.publishButton {
+    margin-top: auto;
+    /* Push to bottom of stack? Or just flow? Prompt says "Visually dominant within right column only" */
+    width: 100%;
+    background: var(--color-ink);
+    color: white;
+    border: none;
+    border-radius: 2px;
+    padding: 1rem;
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.publishButton:hover {
+    background: #000;
+}
+
+.publishButton:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* Notification/Status */
+.statusMessage {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    border-radius: 4px;
+    font-size: 0.8125rem;
+    text-align: center;
+}
+
+.error {
+    background: #ffebee;
+    color: #c62828;
+}
+
+.success {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+/* Scrollbar refinement */
+.writingCanvas::-webkit-scrollbar,
+.controlsPanel::-webkit-scrollbar {
+    width: 6px;
+}
+
+.writingCanvas::-webkit-scrollbar-thumb,
+.controlsPanel::-webkit-scrollbar-thumb {
+    background: #ddd;
+    border-radius: 3px;
 }

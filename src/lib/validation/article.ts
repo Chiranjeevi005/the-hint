@@ -17,6 +17,10 @@ export const VALID_SECTIONS: Section[] = [
     'world-affairs',
 ];
 
+/** Valid statuses */
+export type ArticleStatus = 'draft' | 'published';
+export const VALID_STATUSES: ArticleStatus[] = ['draft', 'published'];
+
 /** Validation result for a single field */
 export interface FieldValidationError {
     field: string;
@@ -92,6 +96,13 @@ export function isValidSection(value: unknown): value is Section {
 }
 
 /**
+ * Validate status
+ */
+export function isValidStatus(value: unknown): value is ArticleStatus {
+    return typeof value === 'string' && VALID_STATUSES.includes(value as ArticleStatus);
+}
+
+/**
  * Validate that featured is a boolean
  */
 export function isValidFeatured(value: unknown): boolean {
@@ -109,6 +120,7 @@ export interface PublishArticleInput {
     body: unknown;
     tags: unknown;
     featured: unknown;
+    status: unknown;
     sources: unknown;
 }
 
@@ -123,6 +135,7 @@ export interface ValidatedArticleData {
     body: string;
     tags: string[];
     featured: boolean;
+    status: ArticleStatus;
     sources: string[];
     slug: string;
 }
@@ -161,6 +174,16 @@ export function validateArticleInput(input: PublishArticleInput): ValidationResu
             field: 'contentType',
             message: `Content type must be one of: ${VALID_CONTENT_TYPES.join(', ')}`
         });
+    }
+
+    // Validate status
+    if (input.status !== undefined && input.status !== null) {
+        if (!isValidStatus(input.status)) {
+            errors.push({
+                field: 'status',
+                message: `Status must be one of: ${VALID_STATUSES.join(', ')}`
+            });
+        }
     }
 
     // Validate opinion rule: opinion contentType can only be in opinion section
@@ -206,6 +229,7 @@ export function transformToValidatedData(input: PublishArticleInput): ValidatedA
     const section = input.section as Section;
     const contentType = input.contentType as ContentType;
     const featured = input.featured === true;
+    const status = (input.status === 'published' ? 'published' : 'draft') as ArticleStatus;
     const tags = sanitizeStringArray(input.tags);
     const sources = sanitizeStringArray(input.sources);
     const slug = generateSlug(title);
@@ -218,6 +242,7 @@ export function transformToValidatedData(input: PublishArticleInput): ValidatedA
         body,
         tags,
         featured,
+        status,
         sources,
         slug,
     };

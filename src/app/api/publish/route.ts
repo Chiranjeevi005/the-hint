@@ -29,7 +29,14 @@ function generateFrontmatter(data: ValidatedArticleData): string {
     lines.push(`title: ${escapeYamlString(data.title)}`);
     lines.push(`subtitle: ${escapeYamlString(data.subtitle)}`);
     lines.push(`contentType: ${data.contentType}`);
-    lines.push(`publishedAt: ${new Date().toISOString()}`);
+    lines.push(`status: ${data.status}`);
+
+    if (data.status === 'published') {
+        lines.push(`publishedAt: ${new Date().toISOString()}`);
+    } else {
+        lines.push(`publishedAt: null`);
+    }
+
     lines.push(`updatedAt: null`);
     lines.push(`featured: ${data.featured}`);
 
