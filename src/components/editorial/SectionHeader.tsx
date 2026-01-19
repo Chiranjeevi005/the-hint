@@ -16,16 +16,18 @@ interface SectionHeaderProps {
 
 export function SectionHeader({ name, description }: SectionHeaderProps) {
     return (
-        <header className="mb-12 border-b-2 border-black pb-6">
+        <header className="mb-8 border-b border-neutral-300 pb-4">
             {/* Section Title */}
-            <h1 className="text-4xl font-bold uppercase tracking-tight mb-3">
+            <h1 className="text-5xl font-serif font-bold tracking-tight text-neutral-900 mb-2 uppercase">
                 {name}
             </h1>
 
             {/* Section Description */}
-            <p className="text-lg leading-relaxed max-w-2xl">
-                {description}
-            </p>
+            {description && (
+                <p className="text-lg text-neutral-600 font-sans max-w-3xl">
+                    {description}
+                </p>
+            )}
         </header>
     );
 }
