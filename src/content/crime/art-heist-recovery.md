@@ -9,6 +9,7 @@ tags:
   - art theft
   - FBI
   - cultural property
+image: "https://images.unsplash.com/photo-1578321272176-b7bbc0679853?auto=format&fit=crop&w=1200"
 sources:
   - FBI Art Crime Team
   - Interpol

@@ -270,11 +270,11 @@ export function getHomepageData(): HomepageData {
     markUsed(topStories);
 
     // Build section blocks (each excluding previously used articles)
-    const selectSectionWithDedup = (section: Section): Article[] => {
+    const selectSectionWithDedup = (section: Section, count: number): Article[] => {
         const candidates = excludeUsed(
             filterBySection(allArticles, section).filter(a => !isOpinion(a))
         );
-        const selected = takeFirst(sortByPublishedAtDesc(candidates), 3);
+        const selected = takeFirst(sortByPublishedAtDesc(candidates), count);
         markUsed(selected);
         return selected;
     };
@@ -284,16 +284,16 @@ export function getHomepageData(): HomepageData {
         const candidates = excludeUsed(
             allArticles.filter(a => isOpinion(a))
         );
-        const selected = takeFirst(sortByPublishedAtDesc(candidates), 3);
+        const selected = takeFirst(sortByPublishedAtDesc(candidates), 5); // UI uses 4, fetching 5 for safety
         markUsed(selected);
         return selected;
     };
 
     const sections: HomepageSections = {
-        crime: selectSectionWithDedup('crime'),
-        court: selectSectionWithDedup('court'),
-        politics: selectSectionWithDedup('politics'),
-        worldAffairs: selectSectionWithDedup('world-affairs'),
+        crime: selectSectionWithDedup('crime', 6), // UI uses 5
+        court: selectSectionWithDedup('court', 6), // UI uses 5
+        politics: selectSectionWithDedup('politics', 5), // UI uses 4
+        worldAffairs: selectSectionWithDedup('world-affairs', 3), // UI uses 2
         opinion: selectOpinionWithDedup(),
     };
 

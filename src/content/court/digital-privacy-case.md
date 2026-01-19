@@ -9,6 +9,7 @@ tags:
   - Supreme Court
   - privacy rights
   - digital data
+image: "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&w=1200"
 sources:
   - Supreme Court of the United States
   - ACLU

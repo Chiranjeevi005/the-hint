@@ -3,8 +3,9 @@
  * 
  * Classic broadsheet newspaper masthead with:
  * - Centered publication name "THE HINT"
- * - Date line (client-side rendered to avoid hydration issues)
- * - Primary navigation below
+ * - Date line
+ * - Primary navigation
+ * - Headline ticker band below navigation
  * 
  * NO icons, NO background fills, NO decorative elements
  */
@@ -23,8 +24,17 @@ const NAVIGATION_ITEMS = [
     { label: "Opinion", href: "/opinion" },
 ] as const;
 
+// Top headlines for the ticker
+const TICKER_HEADLINES = [
+    "Government Announces Major Infrastructure Investment",
+    "Supreme Court Hears Arguments on Digital Privacy Rights",
+    "G20 Leaders Forge Historic Trade Agreement",
+    "Multi-State Drug Trafficking Network Dismantled",
+    "Senate Passes Landmark Election Reform Bill",
+    "Climate Resilience Act Gains Momentum",
+] as const;
+
 export function Header() {
-    // Avoid hydration mismatch by rendering date only on client
     const [currentDate, setCurrentDate] = useState<string>("");
 
     useEffect(() => {
@@ -47,7 +57,7 @@ export function Header() {
             {/* Masthead */}
             <div className="container-editorial">
                 {/* Date Line */}
-                <div className="py-2 text-center" style={{ minHeight: "24px" }}>
+                <div style={{ padding: "0.375rem 0", textAlign: "center", minHeight: "20px" }}>
                     {currentDate && (
                         <time className="meta-text" dateTime={new Date().toISOString().split("T")[0]}>
                             {currentDate}
@@ -55,19 +65,28 @@ export function Header() {
                     )}
                 </div>
 
-                {/* Publication Name */}
-                <div className="py-6 text-center">
-                    <Link href="/" className="inline-block" style={{ textDecoration: "none" }}>
+                {/* Publication Name - Larger for authority */}
+                <div style={{ padding: "1rem 0 0.75rem", textAlign: "center" }}>
+                    <Link href="/" style={{ textDecoration: "none", display: "inline-block" }}>
                         <h1 className="masthead-title">The Hint</h1>
                     </Link>
                 </div>
 
-                {/* Horizontal Rule */}
-                <hr className="section-divider" />
+                {/* Horizontal Rule - Stronger contrast */}
+                <hr style={{ border: "none", borderTop: "1px solid #BEBEBE", margin: 0 }} />
 
-                {/* Primary Navigation */}
-                <nav aria-label="Primary navigation" className="py-3">
-                    <ul className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2" style={{ listStyle: "none", margin: 0, padding: 0 }}>
+                {/* Primary Navigation - Tighter */}
+                <nav aria-label="Primary navigation" style={{ padding: "0.5rem 0" }}>
+                    <ul style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "1.25rem",
+                        listStyle: "none",
+                        margin: 0,
+                        padding: 0
+                    }}>
                         {NAVIGATION_ITEMS.map((item) => (
                             <li key={item.href}>
                                 <Link href={item.href} className="nav-link">
@@ -78,8 +97,22 @@ export function Header() {
                     </ul>
                 </nav>
 
-                {/* Bottom Rule */}
+                {/* Bottom Rule - Thick */}
                 <hr className="section-divider-thick" />
+            </div>
+
+            {/* Headline Ticker Band */}
+            <div className="headline-ticker">
+                <div className="container-editorial" style={{ overflow: "hidden" }}>
+                    <div className="ticker-container">
+                        {/* Duplicate headlines for seamless scroll */}
+                        {[...TICKER_HEADLINES, ...TICKER_HEADLINES].map((headline, index) => (
+                            <span key={index} className="ticker-item">
+                                {headline}
+                            </span>
+                        ))}
+                    </div>
+                </div>
             </div>
         </header>
     );

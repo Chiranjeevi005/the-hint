@@ -9,6 +9,7 @@ tags:
   - climate
   - infrastructure
   - resilience
+image: "https://images.unsplash.com/photo-1502637098811-fa9526d2b659?auto=format&fit=crop&w=1200"
 sources:
   - Senate Environment Committee
   - NOAA

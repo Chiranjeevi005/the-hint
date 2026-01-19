@@ -38,6 +38,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { Header, Footer } from "@/components/layout";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -46,7 +48,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${playfairDisplay.variable} ${inter.variable}`}>
-        {children}
+        <div className="min-h-screen flex flex-col">
+          <Header />
+          {children}
+          <Footer />
+        </div>
       </body>
     </html>
   );

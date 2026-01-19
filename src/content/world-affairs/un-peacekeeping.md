@@ -9,6 +9,7 @@ tags:
   - United Nations
   - peacekeeping
   - security
+image: "https://images.unsplash.com/photo-1524316499645-38df377e8dfc?auto=format&fit=crop&w=1200"
 sources:
   - UN Security Council
   - Department of Peacekeeping Operations

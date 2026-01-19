@@ -9,6 +9,7 @@ tags:
   - cabinet
   - executive branch
   - policy
+image: "https://images.unsplash.com/photo-1541872703-74c5963631df?auto=format&fit=crop&w=1200"
 sources:
   - White House Press Office
 ---

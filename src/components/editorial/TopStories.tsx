@@ -2,13 +2,8 @@
  * TopStories Component
  * 
  * Secondary lead stories below the main lead.
- * Two stories side-by-side layout:
- * - Large image on top
- * - Bold headline
- * - Short summary
- * - Date
- * 
- * Clearly secondary to the main lead.
+ * Clearly secondary to the lead - smaller images, smaller headlines.
+ * Tighter spacing for denser layout.
  * 
  * NO business logic, NO imports from lib/content.
  */
@@ -22,6 +17,7 @@ interface TopStoryArticle {
     section: string;
     publishedAt: string;
     contentType: string;
+    image?: string;
 }
 
 interface TopStoriesProps {
@@ -37,51 +33,76 @@ export function TopStories({ articles }: TopStoriesProps) {
     const secondaryLeads = articles.slice(0, 2);
 
     return (
-        <section className="section-spacing" aria-labelledby="top-stories-heading">
+        <section style={{ marginBottom: "1.25rem" }} aria-labelledby="top-stories-heading">
             {/* Section Header */}
-            <div className="section-header">
+            <div className="section-header" style={{ marginBottom: "0.75rem" }}>
                 <h2 id="top-stories-heading" className="section-title">
                     Top Stories
                 </h2>
                 <div className="section-line" aria-hidden="true" />
             </div>
 
-            {/* Two-Column Layout for Secondary Leads */}
-            <div className="grid gap-6 md:grid-cols-2">
+            {/* Two-Column Layout */}
+            <div style={{
+                display: "grid",
+                gap: "1.25rem",
+                gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))"
+            }}>
                 {secondaryLeads.map((article) => {
                     const articleUrl = `/${article.section}/${article.id}`;
                     const formattedDate = new Date(article.publishedAt).toLocaleDateString("en-US", {
-                        month: "short",
+                        month: "long",
                         day: "numeric",
                         year: "numeric",
                     });
 
                     return (
-                        <article key={article.id} className="pb-6">
-                            {/* Large Image on Top */}
-                            <Link href={articleUrl} className="article-link block mb-4">
-                                <div
-                                    className="image-placeholder article-image"
-                                    style={{
-                                        aspectRatio: "16/10",
-                                        width: "100%",
-                                    }}
-                                    role="img"
-                                    aria-label={`Illustration for: ${article.title}`}
-                                >
-                                    <span>Editorial Image</span>
-                                </div>
+                        <article key={article.id} style={{ paddingBottom: "0.75rem" }}>
+                            {/* Smaller Image */}
+                            <Link href={articleUrl} className="article-link" style={{ display: "block", marginBottom: "0.5rem" }}>
+                                {article.image ? (
+                                    <img
+                                        src={article.image}
+                                        alt={article.title}
+                                        className="article-image"
+                                        style={{
+                                            aspectRatio: "16/9",
+                                            width: "100%",
+                                            maxHeight: "130px",
+                                            objectFit: "cover"
+                                        }}
+                                    />
+                                ) : (
+                                    <div
+                                        className="image-placeholder article-image"
+                                        style={{
+                                            aspectRatio: "16/9",
+                                            width: "100%",
+                                            maxHeight: "130px",
+                                        }}
+                                        role="img"
+                                        aria-label={`Illustration for: ${article.title}`}
+                                    >
+                                        <span style={{ fontSize: "11px" }}>Editorial Image</span>
+                                    </div>
+                                )}
                             </Link>
 
-                            {/* Bold Headline */}
+                            {/* Smaller Headline - Secondary to lead */}
                             <Link href={articleUrl} className="article-link">
-                                <h3 className="headline-lg mb-3">
+                                <h3 className="headline-md" style={{ marginBottom: "0.25rem", lineHeight: 1.25 }}>
                                     {article.title}
                                 </h3>
                             </Link>
 
-                            {/* Short Summary */}
-                            <p className="body-text mb-3 line-clamp-2">
+                            {/* Short Summary - Tight */}
+                            <p className="caption-text" style={{
+                                marginBottom: "0.25rem",
+                                display: "-webkit-box",
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: "vertical",
+                                overflow: "hidden"
+                            }}>
                                 {article.subtitle}
                             </p>
 
@@ -94,8 +115,7 @@ export function TopStories({ articles }: TopStoriesProps) {
                 })}
             </div>
 
-            {/* Section Divider */}
-            <hr className="section-divider mt-4" />
+
         </section>
     );
 }

@@ -9,6 +9,7 @@ tags:
   - infrastructure
   - economy
   - legislation
+image: "https://images.unsplash.com/photo-1596541223126-7d32d03a1c32?auto=format&fit=crop&w=1200"
 sources:
   - Department of Transportation
   - Congressional Budget Office

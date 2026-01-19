@@ -2,17 +2,9 @@
  * LeadStory Component
  * 
  * The dominant lead story with maximum visual prominence.
- * Following broadsheet newspaper layout:
+ * ORDER: Section label → Large headline → Hero image → Caption → Date
  * 
- * ORDER:
- * a) Section label (small uppercase, muted)
- * b) Very large headline (H1)
- * c) Large editorial image below headline
- * d) Caption below image
- * e) Date centered below caption
- * 
- * This is the most prominent visual element on the page.
- * NO sidebar beside the lead.
+ * Headlines visually outweigh images. Images support, never dominate.
  * 
  * NO business logic, NO imports from lib/content.
  */
@@ -27,6 +19,7 @@ interface LeadStoryProps {
         section: string;
         publishedAt: string;
         contentType: string;
+        image?: string;
     } | null;
 }
 
@@ -49,56 +42,71 @@ export function LeadStory({ article }: LeadStoryProps) {
     const articleUrl = `/${article.section}/${article.id}`;
 
     return (
-        <section className="section-spacing" aria-labelledby="lead-story-heading">
+        <section style={{ marginBottom: "1.25rem" }} aria-labelledby="lead-story-heading">
             <article>
                 {/* Section Label */}
-                <div className="mb-3">
+                <div style={{ marginBottom: "0.5rem" }}>
                     <span className="section-label">{sectionLabel}</span>
                 </div>
 
-                {/* Dominant Headline */}
+                {/* Dominant Headline - Largest on page */}
                 <Link href={articleUrl} className="article-link">
-                    <h2 id="lead-story-heading" className="headline-xl mb-4">
+                    <h2
+                        id="lead-story-heading"
+                        className="headline-xl"
+                        style={{ marginBottom: "0.5rem", maxWidth: "900px" }}
+                    >
                         {article.title}
                     </h2>
                 </Link>
 
-                {/* Large Editorial Image */}
-                <Link href={articleUrl} className="article-link block mb-3">
-                    <div
-                        className="image-placeholder article-image"
-                        style={{
-                            aspectRatio: "16/9",
-                            width: "100%",
-                            maxHeight: "500px"
-                        }}
-                        role="img"
-                        aria-label={`Illustration for: ${article.title}`}
-                    >
-                        <span>Editorial Image</span>
-                    </div>
+                {/* Hero Image - Taller for front-page presence */}
+                <Link href={articleUrl} className="article-link" style={{ display: "block", marginBottom: "0.35rem" }}>
+                    {article.image ? (
+                        <img
+                            src={article.image}
+                            alt={article.title}
+                            className="article-image"
+                            style={{
+                                aspectRatio: "2.2/1",
+                                width: "100%",
+                                maxHeight: "350px",
+                                objectFit: "cover"
+                            }}
+                        />
+                    ) : (
+                        <div
+                            className="image-placeholder article-image"
+                            style={{
+                                aspectRatio: "2.2/1",
+                                width: "100%",
+                                maxHeight: "350px"
+                            }}
+                            role="img"
+                            aria-label={`Illustration for: ${article.title}`}
+                        >
+                            <span>Editorial Image</span>
+                        </div>
+                    )}
                 </Link>
 
-                {/* Caption / Subtitle */}
-                <p className="body-text mb-3 max-w-3xl">
+                {/* Caption/Subtitle - Tight grouping with image */}
+                <p className="body-text" style={{ marginBottom: "0.25rem", maxWidth: "800px", fontSize: "14px" }}>
                     {article.subtitle}
                 </p>
 
-                {/* Date - Centered */}
-                <div className="text-center">
+                {/* Date - Close to caption */}
+                <div>
                     <time dateTime={article.publishedAt} className="meta-text">
                         {formattedDate}
                     </time>
                     {article.contentType !== "news" && (
-                        <span className="meta-text ml-3 uppercase font-medium">
+                        <span className="meta-text" style={{ marginLeft: "0.75rem", textTransform: "uppercase", fontWeight: 500 }}>
                             {article.contentType}
                         </span>
                     )}
                 </div>
             </article>
-
-            {/* Section Divider */}
-            <hr className="section-divider mt-8" />
         </section>
     );
 }

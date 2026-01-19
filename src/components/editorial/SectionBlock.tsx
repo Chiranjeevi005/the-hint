@@ -1,31 +1,12 @@
 /**
  * SectionBlock Component
  * 
- * Renders section blocks with different layouts based on section type:
+ * Section-specific layouts with increased density:
  * 
- * CRIME & COURT (Right Rail Style):
- * - Small thumbnail on left
- * - Headline + short blurb on right
- * - Dense, wire-style, information-first
- * 
- * POLITICS (Left Column):
- * - Vertical list
- * - Small image on left
- * - Headline on right
- * - Compact, policy-driven tone
- * 
- * WORLD AFFAIRS:
- * - Two-column layout
- * - Image-led stories
- * - Headline + short summary
- * - More breathing room
- * 
- * OPINION & ANALYSIS:
- * - Four equal-width columns
- * - Avatar headshot
- * - Headline
- * - Byline below
- * - Never competes with hard news visually
+ * CRIME & COURT: Wire/docket style - smaller thumbnails, headline only, dense list
+ * POLITICS: Dense list-driven - smaller images, headlines emphasized
+ * WORLD AFFAIRS: Image-led but controlled - slightly more spacing
+ * OPINION: Serious analytical tone - stronger headlines, reduced whitespace
  * 
  * NO business logic, NO imports from lib/content.
  */
@@ -39,6 +20,7 @@ interface SectionArticle {
     section?: string;
     publishedAt: string;
     contentType: string;
+    image?: string;
 }
 
 interface SectionBlockProps {
@@ -46,72 +28,83 @@ interface SectionBlockProps {
     articles: SectionArticle[];
 }
 
-// Wire-style layout for Crime and Court (right rail style)
+// Wire-style layout for Crime and Court - Dense with heading, sub-headline, date
 function WireStyleLayout({ articles, sectionSlug }: { articles: SectionArticle[]; sectionSlug: string }) {
     return (
-        <div className="space-y-0">
-            {articles.map((article) => {
-                const articleUrl = `/${sectionSlug}/${article.id}`;
-
-                return (
-                    <Link key={article.id} href={articleUrl} className="article-link">
-                        <div className="wire-item">
-                            {/* Small Thumbnail */}
-                            <div
-                                className="wire-thumbnail image-placeholder"
-                                role="img"
-                                aria-label={`Thumbnail for: ${article.title}`}
-                            >
-                                <span style={{ fontSize: "8px" }}>IMG</span>
-                            </div>
-
-                            {/* Content */}
-                            <div className="wire-content">
-                                <h3 className="headline-sm mb-1 leading-tight">
-                                    {article.title}
-                                </h3>
-                                <p className="caption-text line-clamp-2">
-                                    {article.subtitle}
-                                </p>
-                            </div>
-                        </div>
-                    </Link>
-                );
-            })}
-        </div>
-    );
-}
-
-// Vertical list for Politics
-function PoliticsLayout({ articles, sectionSlug }: { articles: SectionArticle[]; sectionSlug: string }) {
-    return (
-        <div className="space-y-4">
-            {articles.map((article) => {
+        <div>
+            {articles.slice(0, 5).map((article, index) => {
                 const articleUrl = `/${sectionSlug}/${article.id}`;
                 const formattedDate = new Date(article.publishedAt).toLocaleDateString("en-US", {
-                    month: "short",
+                    month: "long",
                     day: "numeric",
+                    year: "numeric",
                 });
 
                 return (
                     <Link key={article.id} href={articleUrl} className="article-link">
-                        <div className="flex gap-4 pb-4 border-b border-[var(--color-border)] last:border-0">
-                            {/* Small Image on Left */}
-                            <div
-                                className="image-placeholder flex-shrink-0"
-                                style={{ width: "100px", height: "70px" }}
-                                role="img"
-                                aria-label={`Thumbnail for: ${article.title}`}
-                            >
-                                <span style={{ fontSize: "9px" }}>IMG</span>
-                            </div>
+                        <div style={{
+                            display: "flex",
+                            gap: "0.625rem",
+                            padding: "0.35rem 0"
+                        }}>
+                            {/* Small Thumbnail */}
+                            {article.image ? (
+                                <img
+                                    src={article.image}
+                                    alt={article.title}
+                                    style={{
+                                        flexShrink: 0,
+                                        width: "50px",
+                                        height: "40px",
+                                        objectFit: "cover"
+                                    }}
+                                />
+                            ) : (
+                                <div
+                                    className="image-placeholder"
+                                    style={{
+                                        flexShrink: 0,
+                                        width: "50px",
+                                        height: "40px",
+                                        fontSize: "8px"
+                                    }}
+                                    role="img"
+                                    aria-label={`Thumbnail for: ${article.title}`}
+                                >
+                                    IMG
+                                </div>
+                            )}
 
-                            {/* Content */}
-                            <div className="flex-1 min-w-0">
-                                <h3 className="headline-md mb-1">
+                            {/* Content: Heading, Sub-headline, Date */}
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                                {/* Heading */}
+                                <h3 className="headline-sm" style={{
+                                    marginBottom: "0.25rem",
+                                    display: "-webkit-box",
+                                    WebkitLineClamp: 2,
+                                    WebkitBoxOrient: "vertical",
+                                    overflow: "hidden",
+                                    fontSize: "0.875rem",
+                                    lineHeight: 1.3
+                                }}>
                                     {article.title}
                                 </h3>
-                                <time dateTime={article.publishedAt} className="meta-text">
+
+                                {/* Sub-headline - 1 line */}
+                                <p className="caption-text" style={{
+                                    marginBottom: "0.125rem",
+                                    display: "-webkit-box",
+                                    WebkitLineClamp: 1,
+                                    WebkitBoxOrient: "vertical",
+                                    overflow: "hidden",
+                                    fontSize: "12px",
+                                    lineHeight: 1.4
+                                }}>
+                                    {article.subtitle}
+                                </p>
+
+                                {/* Date */}
+                                <time className="meta-text" style={{ fontSize: "11px" }}>
                                     {formattedDate}
                                 </time>
                             </div>
@@ -123,42 +116,143 @@ function PoliticsLayout({ articles, sectionSlug }: { articles: SectionArticle[];
     );
 }
 
-// Two-column image-led layout for World Affairs
-function WorldAffairsLayout({ articles, sectionSlug }: { articles: SectionArticle[]; sectionSlug: string }) {
+// Dense vertical list for Politics
+function PoliticsLayout({ articles, sectionSlug }: { articles: SectionArticle[]; sectionSlug: string }) {
     return (
-        <div className="grid gap-6 md:grid-cols-2">
-            {articles.map((article) => {
+        <div>
+            {articles.slice(0, 4).map((article, index) => {
                 const articleUrl = `/${sectionSlug}/${article.id}`;
                 const formattedDate = new Date(article.publishedAt).toLocaleDateString("en-US", {
-                    month: "short",
+                    month: "long",
                     day: "numeric",
+                    year: "numeric",
                 });
 
                 return (
                     <Link key={article.id} href={articleUrl} className="article-link">
-                        <article className="pb-4">
-                            {/* Image-led */}
-                            <div
-                                className="image-placeholder article-image mb-3"
-                                style={{ aspectRatio: "16/10", width: "100%" }}
-                                role="img"
-                                aria-label={`Illustration for: ${article.title}`}
-                            >
-                                <span>Editorial Image</span>
+                        <div style={{
+                            display: "flex",
+                            gap: "0.625rem",
+                            padding: "0.5rem 0"
+                        }}>
+                            {/* Small Image */}
+                            {article.image ? (
+                                <img
+                                    src={article.image}
+                                    alt={article.title}
+                                    style={{
+                                        flexShrink: 0,
+                                        width: "60px",
+                                        height: "40px",
+                                        objectFit: "cover"
+                                    }}
+                                />
+                            ) : (
+                                <div
+                                    className="image-placeholder"
+                                    style={{ flexShrink: 0, width: "60px", height: "40px", fontSize: "8px" }}
+                                    role="img"
+                                    aria-label={`Thumbnail for: ${article.title}`}
+                                >
+                                    IMG
+                                </div>
+                            )}
+
+                            {/* Headline, Subtitles, Date */}
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                                <h3 className="headline-sm" style={{
+                                    marginBottom: "0.25rem",
+                                    fontSize: "0.875rem",
+                                    lineHeight: 1.3
+                                }}>
+                                    {article.title}
+                                </h3>
+
+                                {/* Sub-headline */}
+                                <p className="caption-text" style={{
+                                    marginBottom: "0.125rem",
+                                    display: "-webkit-box",
+                                    WebkitLineClamp: 1,
+                                    WebkitBoxOrient: "vertical",
+                                    overflow: "hidden",
+                                    fontSize: "12px",
+                                    lineHeight: 1.4
+                                }}>
+                                    {article.subtitle}
+                                </p>
+
+                                {/* Date */}
+                                <time className="meta-text" style={{ fontSize: "11px" }}>
+                                    {formattedDate}
+                                </time>
                             </div>
+                        </div>
+                    </Link>
+                );
+            })}
+        </div>
+    );
+}
+
+// Image-led layout for World Affairs - Slightly more breathing room
+// Image-led layout for World Affairs - Only 2 articles
+function WorldAffairsLayout({ articles, sectionSlug }: { articles: SectionArticle[]; sectionSlug: string }) {
+    return (
+        <div style={{ display: "grid", gap: "1.25rem", gridTemplateColumns: "repeat(2, 1fr)" }}>
+            {articles.slice(0, 2).map((article) => {
+                const articleUrl = `/${sectionSlug}/${article.id}`;
+                const formattedDate = new Date(article.publishedAt).toLocaleDateString("en-US", {
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
+                });
+
+                return (
+                    <Link key={article.id} href={articleUrl} className="article-link">
+                        <article style={{ paddingBottom: "0.5rem" }}>
+                            {/* Image-led */}
+                            {article.image ? (
+                                <img
+                                    src={article.image}
+                                    alt={article.title}
+                                    className="article-image"
+                                    style={{ aspectRatio: "16/10", width: "100%", marginBottom: "0.625rem", objectFit: "cover" }}
+                                />
+                            ) : (
+                                <div
+                                    className="image-placeholder article-image"
+                                    style={{ aspectRatio: "16/10", width: "100%", marginBottom: "0.625rem", fontSize: "10px" }}
+                                    role="img"
+                                    aria-label={`Illustration for: ${article.title}`}
+                                >
+                                    Editorial Image
+                                </div>
+                            )}
 
                             {/* Headline */}
-                            <h3 className="headline-md mb-2">
+                            <h3 className="headline-sm" style={{
+                                marginBottom: "0.25rem",
+                                lineHeight: 1.3,
+                                fontSize: "1rem"
+                            }}>
                                 {article.title}
                             </h3>
 
-                            {/* Short Summary */}
-                            <p className="caption-text mb-2 line-clamp-2">
+                            {/* Sub-headline */}
+                            <p className="caption-text" style={{
+                                marginBottom: "0.25rem",
+                                display: "-webkit-box",
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: "vertical",
+                                overflow: "hidden",
+                                fontSize: "13px",
+                                lineHeight: 1.4
+                            }}>
                                 {article.subtitle}
                             </p>
 
                             {/* Date */}
-                            <time dateTime={article.publishedAt} className="meta-text">
+                            <time className="meta-text" style={{ fontSize: "11px" }}>
                                 {formattedDate}
                             </time>
                         </article>
@@ -169,36 +263,48 @@ function WorldAffairsLayout({ articles, sectionSlug }: { articles: SectionArticl
     );
 }
 
-// Four-column Opinion layout with avatars
+// Opinion layout - Serious, analytical, not light
 function OpinionLayout({ articles, sectionSlug }: { articles: SectionArticle[]; sectionSlug: string }) {
     return (
-        <div className="grid gap-6 grid-cols-2 md:grid-cols-4">
-            {articles.map((article) => {
+        <div style={{ display: "grid", gap: "1rem", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))" }}>
+            {articles.slice(0, 4).map((article) => {
                 const articleUrl = `/${sectionSlug}/${article.id}`;
-                // Extract author from subtitle or use placeholder
                 const authorName = article.subtitle.split("—")[0]?.trim() || "The Hint Editorial";
 
                 return (
                     <Link key={article.id} href={articleUrl} className="article-link">
-                        <article className="text-center pb-4">
-                            {/* Author Headshot (Avatar) */}
+                        <article style={{ textAlign: "center", paddingBottom: "0.5rem" }}>
+                            {/* Author Avatar - Tight spacing */}
                             <div
-                                className="opinion-avatar mx-auto mb-3 image-placeholder"
+                                className="opinion-avatar image-placeholder"
                                 role="img"
                                 aria-label={`Photo of ${authorName}`}
-                                style={{ width: "56px", height: "56px", borderRadius: "50%" }}
+                                style={{
+                                    width: "36px",
+                                    height: "36px",
+                                    borderRadius: "50%",
+                                    margin: "0 auto 0.5rem",
+                                    fontSize: "8px",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center"
+                                }}
                             >
-                                <span style={{ fontSize: "8px" }}>👤</span>
+                                👤
                             </div>
 
-                            {/* Headline */}
-                            <h3 className="headline-sm mb-2 leading-tight">
+                            {/* Stronger Headline */}
+                            <h3 className="headline-sm" style={{
+                                marginBottom: "0.25rem",
+                                lineHeight: 1.2,
+                                fontWeight: 600
+                            }}>
                                 {article.title}
                             </h3>
 
                             {/* Byline */}
-                            <p className="byline">
-                                By {authorName}
+                            <p className="byline" style={{ fontSize: "11px", margin: 0 }}>
+                                {authorName}
                             </p>
                         </article>
                     </Link>
@@ -234,23 +340,22 @@ export function SectionBlock({ sectionTitle, articles }: SectionBlockProps) {
     const isWorldAffairs = sectionSlug.includes("world");
 
     return (
-        <section className="section-spacing" aria-labelledby={`section-${sectionSlug}`}>
-            {/* Section Header */}
-            <div className="section-header">
-                <h2 id={`section-${sectionSlug}`} className="section-title">
+        <section style={{ marginBottom: "1.25rem" }} aria-labelledby={`section-${sectionSlug}`}>
+            {/* Section Header - Prominent label */}
+            <div className="section-header" style={{ marginBottom: "0.5rem" }}>
+                <h2 id={`section-${sectionSlug}`} className="section-title" style={{ fontWeight: 700 }}>
                     {sectionTitle}
                 </h2>
                 <div className="section-line" aria-hidden="true" />
             </div>
 
-            {/* Section Content - Different layouts based on section type */}
+            {/* Section Content */}
             {isOpinion && <OpinionLayout articles={articles} sectionSlug={actualSlug} />}
             {isCrimeOrCourt && <WireStyleLayout articles={articles} sectionSlug={actualSlug} />}
             {isPolitics && <PoliticsLayout articles={articles} sectionSlug={actualSlug} />}
             {isWorldAffairs && <WorldAffairsLayout articles={articles} sectionSlug={actualSlug} />}
 
-            {/* Section Divider */}
-            <hr className="section-divider mt-6" />
+
         </section>
     );
 }

@@ -56,7 +56,11 @@ export interface Article {
     sources: string[];
 
     /** Raw Markdown body content (after frontmatter) */
+    /** Raw Markdown body content (after frontmatter) */
     body: string;
+
+    /** Featured image URL (optional) */
+    image?: string;
 }
 
 /**
@@ -70,6 +74,7 @@ export interface ArticleFrontmatter {
     publishedAt: string;
     updatedAt?: string | null;
     featured?: boolean;
+    image?: string;
     tags?: string[];
     sources?: string[];
 }

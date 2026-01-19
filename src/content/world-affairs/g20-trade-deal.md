@@ -9,6 +9,7 @@ tags:
   - G20
   - trade
   - international relations
+image: "https://images.unsplash.com/photo-1590494165263-91bfa4d84728?auto=format&fit=crop&w=1200"
 sources:
   - G20 Secretariat
   - World Trade Organization

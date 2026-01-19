@@ -105,6 +105,7 @@ function readArticleFile(filePath: string, expectedSection: Section): Article {
         featured: frontmatter.featured ?? false,
         tags: frontmatter.tags ?? [],
         sources: frontmatter.sources ?? [],
+        image: frontmatter.image,
         body: body,
     };
 

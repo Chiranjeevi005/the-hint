@@ -214,6 +214,11 @@ function validateFrontmatter(
         errors.push('featured must be a boolean');
     }
 
+    // Validate optional image URL
+    if (data.image !== undefined && typeof data.image !== 'string') {
+        errors.push('image must be a string URL');
+    }
+
     if (errors.length > 0) {
         throw new ContentParseError(
             `Frontmatter validation failed:\n  - ${errors.join('\n  - ')}`,
@@ -228,6 +233,7 @@ function validateFrontmatter(
         publishedAt: data.publishedAt as string,
         updatedAt: (data.updatedAt as string | null) ?? null,
         featured: (data.featured as boolean) ?? false,
+        image: (data.image as string) ?? undefined,
         tags: (data.tags as string[]) ?? [],
         sources: (data.sources as string[]) ?? [],
     };

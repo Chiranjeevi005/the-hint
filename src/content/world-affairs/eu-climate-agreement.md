@@ -10,6 +10,7 @@ tags:
   - european-union
   - environment
   - international
+image: "https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&w=1200"
 sources:
   - European Commission
   - Reuters

@@ -9,6 +9,7 @@ tags:
   - cryptocurrency
   - money laundering
   - cybercrime
+image: "https://images.unsplash.com/photo-1518546305927-5a555bb7020d?auto=format&fit=crop&w=1200"
 sources:
   - Department of Justice
   - FinCEN
