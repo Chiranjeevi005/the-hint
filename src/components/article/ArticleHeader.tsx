@@ -12,6 +12,8 @@ interface ArticleHeaderProps {
     subtitle: string;
     sectionLabel: string;
     contentTypeLabel?: string;
+    publishedAt: string;
+    updatedAt: string | null;
 }
 
 export function ArticleHeader({
@@ -19,30 +21,64 @@ export function ArticleHeader({
     subtitle,
     sectionLabel,
     contentTypeLabel,
+    publishedAt,
+    updatedAt,
 }: ArticleHeaderProps) {
+    // Format dates
+    const formattedPublished = new Date(publishedAt).toLocaleDateString('en-US', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+    });
+
     return (
-        <header className="mb-12">
-            {/* Section and Content Type Labels */}
-            <div className="mb-6 flex items-center gap-4">
-                <span className="text-sm font-bold uppercase tracking-widest">
+        <header className="mb-6">
+            {/* 1. Section Label */}
+            <div className="mb-3 flex items-center gap-4">
+                <span className="text-xs font-bold uppercase tracking-[0.15em] text-[#8A8A8A]">
                     {sectionLabel}
                 </span>
-                {contentTypeLabel && contentTypeLabel !== 'news' && (
-                    <span className="text-sm font-semibold uppercase tracking-wide border-l border-current pl-4">
-                        {contentTypeLabel}
-                    </span>
-                )}
+                {contentTypeLabel &&
+                    contentTypeLabel !== 'news' &&
+                    contentTypeLabel.toLowerCase() !== sectionLabel.toLowerCase() && (
+                        <span className="text-xs font-bold uppercase tracking-[0.15em] text-[#8A8A8A] border-l border-[#D9D9D9] pl-4">
+                            {contentTypeLabel}
+                        </span>
+                    )}
             </div>
 
-            {/* Main Headline */}
-            <h1 className="text-4xl font-black leading-tight mb-6 max-w-4xl md:text-5xl lg:text-6xl">
+            {/* 2. Large Headline */}
+            <h1 className={`font-serif text-4xl md:text-5xl lg:text-[3.5rem] font-black leading-[1.05] mb-3 text-[#111111] max-w-4xl tracking-tight ${contentTypeLabel === 'opinion' ? 'italic' : ''}`}>
                 {title}
             </h1>
 
-            {/* Subtitle / Deck */}
-            <p className="text-xl leading-relaxed max-w-3xl md:text-2xl">
+            {/* 3. Subheadline */}
+            <p className="font-serif text-xl md:text-2xl leading-relaxed text-[#2B2B2B] mb-5 max-w-3xl">
                 {subtitle}
             </p>
+
+            {/* 4. Meta Row */}
+            <div className="flex items-center gap-4 text-sm font-sans text-[#6B6B6B] mb-6">
+                <time dateTime={publishedAt}>
+                    {formattedPublished}
+                </time>
+                {updatedAt && (
+                    <>
+                        <span aria-hidden="true" className="text-[#D9D9D9]">•</span>
+                        <time dateTime={updatedAt}>
+                            Updated {new Date(updatedAt).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric'
+                            })}
+                        </time>
+                    </>
+                )}
+            </div>
+
+            {/* 5. Thin Horizontal Rule */}
+            <hr className="border-t border-[#D9D9D9] w-full" />
         </header>
     );
 }

@@ -32,6 +32,7 @@ export function ArticleBody({ content }: ArticleBodyProps) {
                     prose-ul:my-6 prose-ul:pl-6
                     prose-li:text-lg prose-li:leading-relaxed prose-li:mb-2
                     prose-strong:font-bold
+                    prose-img:block prose-img:w-full prose-img:mx-auto prose-img:my-8 prose-img:rounded-none
                     prose-blockquote:border-l-4 prose-blockquote:border-current prose-blockquote:pl-6 prose-blockquote:italic"
                 dangerouslySetInnerHTML={{ __html: htmlContent }}
             />
