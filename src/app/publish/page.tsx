@@ -124,6 +124,15 @@ export default function PublishPage() {
         }
     }
 
+    async function handleLogout() {
+        try {
+            await fetch('/api/auth/logout', { method: 'POST' });
+            window.location.href = '/newsroom';
+        } catch (error) {
+            console.error('Logout failed', error);
+        }
+    }
+
     return (
         <form className={styles.page} onSubmit={handleSubmit}>
             {/* TOP BAR */}
@@ -131,6 +140,7 @@ export default function PublishPage() {
                 <button type="button" className={styles.topBarAction}>Save Draft</button>
                 <button type="button" className={styles.topBarAction}>Preview</button>
                 <button type="button" className={styles.topBarAction}>History</button>
+                <button type="button" onClick={handleLogout} className={styles.topBarAction} style={{ marginLeft: 'auto', color: '#666' }}>Logout</button>
             </div>
 
             {/* MAIN LAYOUT */}
