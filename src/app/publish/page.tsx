@@ -452,6 +452,15 @@ export default function PublishPage() {
         });
     };
 
+    async function handleLogout() {
+        try {
+            await fetch('/api/auth/logout', { method: 'POST' });
+            window.location.href = '/newsroom';
+        } catch (error) {
+            console.error('Logout failed', error);
+        }
+    }
+
     return (
         <form className={styles.page} onSubmit={handlePublish}>
             {/* TOP BAR */}
@@ -485,6 +494,14 @@ export default function PublishPage() {
                         disabled={isLoadingHistory}
                     >
                         {isLoadingHistory ? 'Loading...' : 'History'}
+                    </button>
+                    <button
+                        type="button"
+                        onClick={handleLogout}
+                        className={styles.topBarAction}
+                        style={{ marginLeft: '12px', color: '#666' }}
+                    >
+                        Logout
                     </button>
                 </div>
             </div>
