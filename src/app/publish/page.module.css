@@ -1,0 +1,22 @@
+/* ============================================================================
+   PUBLISHING CONSOLE PAGE
+   Main container and layout for the editorial console
+   ============================================================================ */
+
+.page {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    overflow: hidden;
+}
+
+/* Main Workspace Area */
+.workspace {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}

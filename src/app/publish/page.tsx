@@ -2,122 +2,50 @@
 
 /**
  * Publishing Console Page
- * Internal tool for publishing articles to The Hint newspaper.
+ * Internal editorial console for The Hint newspaper.
+ * 
+ * This is a SINGLE PAGE that serves TWO purposes:
+ * 1. Long-form article editor
+ * 2. Editorial content database (CRUD)
  * 
  * RULES:
  * - UI contains ZERO business logic
  * - All validation happens server-side
  * - Client validation is only UX assistance
- * - Publishing must be explicit and irreversible
+ * - Publishing must be explicit
  * - Drafts and published articles are strictly separated
  */
 
-import { useState, FormEvent, ChangeEvent, useCallback, useEffect } from 'react';
-import styles from './publish.module.css';
+import { useState, useCallback, useEffect } from 'react';
+import {
+    EditorialToolbar,
+    ArticleEditor,
+    ArticleDatabase,
+    Toast,
+    ArticleFormData,
+    ArticleEntry,
+    WorkspaceMode,
+    FieldErrors,
+    ToastMessage,
+    PreviewData,
+    ApiResponse,
+    INITIAL_FORM_DATA,
+} from '@/components/publish';
+import styles from './page.module.css';
 
-/** Valid sections - display only, validation is server-side */
-const SECTIONS = [
-    { value: 'politics', label: 'Politics' },
-    { value: 'crime', label: 'Crime' },
-    { value: 'court', label: 'Court' },
-    { value: 'opinion', label: 'Opinion' },
-    { value: 'world-affairs', label: 'World Affairs' },
-] as const;
-
-/** Valid content types - news or opinion only */
-const CONTENT_TYPES = [
-    { value: 'news', label: 'News' },
-    { value: 'opinion', label: 'Opinion' },
-] as const;
-
-/** API response structure */
-interface ApiResponse {
-    success: boolean;
-    message?: string;
-    error?: string;
-    errors?: { field: string; message: string }[];
-    data?: {
-        slug?: string;
-        section?: string;
-        url?: string;
-        draftId?: string;
-        savedAt?: string;
-        publishedAt?: string;
-        preview?: PreviewData;
-        drafts?: DraftHistoryEntry[];
-    };
-}
-
-/** Preview data from API */
-interface PreviewData {
-    headline: string;
-    subheadline: string;
-    section: string;
-    contentType: string;
-    body: string;
-    tags: string[];
-    sources: string[];
-    placement: 'lead' | 'top' | 'standard';
-    previewDate: string;
-}
-
-/** Draft history entry */
-interface DraftHistoryEntry {
-    draftId: string;
-    headline: string;
-    savedAt: string;
-    section: string;
-    contentType: string;
-}
-
-/** Form data structure */
-interface FormData {
-    headline: string;
-    subheadline: string;
-    section: string;
-    contentType: string;
-    body: string;
-    tags: string;
-    placement: 'lead' | 'top' | 'standard';
-    sources: string;
-    draftId: string | null;
-    status: 'draft' | 'published';
-}
-
-/** Field-level errors from server */
-type FieldErrors = Record<string, string>;
-
-const INITIAL_FORM_DATA: FormData = {
-    headline: '',
-    subheadline: '',
-    section: 'politics',
-    contentType: 'news',
-    body: '',
-    tags: '',
-    placement: 'standard',
-    sources: '',
-    draftId: null,
-    status: 'draft',
-};
-
-/** Client-side UX validation (NOT business logic - just helper hints) */
-function getClientHints(formData: FormData): Record<string, string> {
+/** Client-side UX validation hints (NOT business logic) */
+function getClientHints(formData: ArticleFormData): Record<string, string> {
     const hints: Record<string, string> = {};
 
-    // Headline hints
     if (formData.headline && formData.headline.length < 10) {
         hints.headline = `${10 - formData.headline.length} more characters needed`;
     }
     if (formData.headline.length > 150) {
         hints.headline = `${formData.headline.length - 150} characters over limit`;
     }
-
-    // Subheadline hints
     if (formData.subheadline.length > 200) {
         hints.subheadline = `${formData.subheadline.length - 200} characters over limit`;
     }
-
-    // Opinion must be in opinion section (UX hint only)
     if (formData.contentType === 'opinion' && formData.section !== 'opinion') {
         hints.contentType = 'Opinion articles must be in Opinion section';
     }
@@ -125,68 +53,55 @@ function getClientHints(formData: FormData): Record<string, string> {
     return hints;
 }
 
+/** Check if form has minimum required fields for publishing */
+function canPublish(formData: ArticleFormData): boolean {
+    return !!(
+        formData.headline.trim() &&
+        formData.subheadline.trim() &&
+        formData.body.trim() &&
+        formData.section
+    );
+}
+
 export default function PublishPage() {
+    // Workspace mode
+    const [mode, setMode] = useState<WorkspaceMode>('editor');
+
     // Form state
-    const [formData, setFormData] = useState<FormData>(INITIAL_FORM_DATA);
-
-    // UI state
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isSavingDraft, setIsSavingDraft] = useState(false);
-    const [isLoadingPreview, setIsLoadingPreview] = useState(false);
-    const [isLoadingHistory, setIsLoadingHistory] = useState(false);
-
-    // Result states
-    const [submitResult, setSubmitResult] = useState<ApiResponse | null>(null);
+    const [formData, setFormData] = useState<ArticleFormData>(INITIAL_FORM_DATA);
     const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
-    // View states
-    const [showHistory, setShowHistory] = useState(false);
+    // Articles list for database mode
+    const [articles, setArticles] = useState<ArticleEntry[]>([]);
+    const [isLoadingArticles, setIsLoadingArticles] = useState(false);
+
+    // UI state
+    const [isSaving, setIsSaving] = useState(false);
+    const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+    const [isPublishing, setIsPublishing] = useState(false);
     const [showPreview, setShowPreview] = useState(false);
     const [previewData, setPreviewData] = useState<PreviewData | null>(null);
-    const [draftHistory, setDraftHistory] = useState<DraftHistoryEntry[]>([]);
 
-    // Client-side hints
+    // Toast notifications
+    const [toast, setToast] = useState<ToastMessage | null>(null);
+
+    // Client hints
     const clientHints = getClientHints(formData);
 
     /**
-     * Auto-dismiss toast after 5 seconds
+     * Show toast notification
      */
-    useEffect(() => {
-        if (submitResult) {
-            const timer = setTimeout(() => {
-                setSubmitResult(null);
-            }, 5000);
-            return () => clearTimeout(timer);
-        }
-    }, [submitResult]);
+    const showToast = useCallback((type: 'success' | 'error', message: string, link?: { url: string; label: string }) => {
+        setToast({
+            id: Date.now().toString(),
+            type,
+            message,
+            link,
+        });
+    }, []);
 
     /**
-     * Handle input changes
-     */
-    const handleInputChange = useCallback((
-        e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-    ) => {
-        const { name, value, type } = e.target;
-
-        if (type === 'checkbox') {
-            const checked = (e.target as HTMLInputElement).checked;
-            setFormData(prev => ({ ...prev, [name]: checked }));
-        } else {
-            setFormData(prev => ({ ...prev, [name]: value }));
-        }
-
-        // Clear field error when user types
-        if (fieldErrors[name]) {
-            setFieldErrors(prev => {
-                const next = { ...prev };
-                delete next[name];
-                return next;
-            });
-        }
-    }, [fieldErrors]);
-
-    /**
-     * Build payload for API calls
+     * Build API payload from form data
      */
     const buildPayload = useCallback(() => {
         const tagsArray = formData.tags.split(',').map(t => t.trim()).filter(Boolean);
@@ -219,19 +134,85 @@ export default function PublishPage() {
     }, []);
 
     /**
-     * SAVE DRAFT
-     * - Validates required fields for draft (headline + body)
-     * - Writes to drafts store
-     * - Overwrites existing draft with same ID
+     * Fetch articles for database mode
+     */
+    const fetchArticles = useCallback(async (filter?: string) => {
+        setIsLoadingArticles(true);
+        try {
+            const url = filter ? `/api/publish/articles?filter=${filter}` : '/api/publish/articles';
+            const response = await fetch(url);
+            const result: ApiResponse = await response.json();
+
+            if (result.success && result.data?.articles) {
+                setArticles(result.data.articles as ArticleEntry[]);
+            } else {
+                showToast('error', result.error || 'Failed to load articles');
+            }
+        } catch {
+            showToast('error', 'Network error while loading articles');
+        } finally {
+            setIsLoadingArticles(false);
+        }
+    }, [showToast]);
+
+    /**
+     * Load articles when switching to database mode
+     */
+    useEffect(() => {
+        if (mode !== 'editor') {
+            const filter = mode === 'drafts' ? 'drafts' : mode === 'published' ? 'published' : undefined;
+            fetchArticles(filter);
+        }
+    }, [mode, fetchArticles]);
+
+    /**
+     * Handle mode change
+     */
+    const handleModeChange = useCallback((newMode: WorkspaceMode) => {
+        setMode(newMode);
+        setShowPreview(false);
+    }, []);
+
+    /**
+     * Handle new article
+     */
+    const handleNewArticle = useCallback(() => {
+        setFormData(INITIAL_FORM_DATA);
+        setFieldErrors({});
+        setShowPreview(false);
+        setPreviewData(null);
+        setMode('editor');
+    }, []);
+
+    /**
+     * Handle form changes
+     */
+    const handleFormChange = useCallback((data: ArticleFormData) => {
+        setFormData(data);
+        // Clear field errors when user makes changes
+        const changedFields = Object.keys(data).filter(
+            key => data[key as keyof ArticleFormData] !== formData[key as keyof ArticleFormData]
+        );
+        if (changedFields.length > 0) {
+            setFieldErrors(prev => {
+                const next = { ...prev };
+                for (const field of changedFields) {
+                    delete next[field];
+                }
+                return next;
+            });
+        }
+    }, [formData]);
+
+    /**
+     * Save Draft
      */
     const handleSaveDraft = useCallback(async () => {
-        setIsSavingDraft(true);
-        setSubmitResult(null);
+        setIsSaving(true);
         setFieldErrors({});
 
         try {
             const payload = buildPayload();
-
             const response = await fetch('/api/publish/draft', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -241,40 +222,29 @@ export default function PublishPage() {
             const result: ApiResponse = await response.json();
 
             if (result.success && result.data?.draftId) {
-                // Update form with new draft ID
                 setFormData(prev => ({ ...prev, draftId: result.data!.draftId! }));
-                setSubmitResult({ success: true, message: 'Draft saved successfully' });
-            } else if (!result.success && result.errors && result.errors.length > 0) {
-                // Show first specific error in toast, all errors in fields
+                showToast('success', 'Draft saved successfully');
+            } else if (!result.success && result.errors?.length) {
                 setFieldErrors(parseFieldErrors(result.errors));
-                setSubmitResult({
-                    success: false,
-                    error: result.errors[0].message  // Show first specific error
-                });
+                showToast('error', result.errors[0].message);
             } else {
-                setSubmitResult(result);
+                showToast('error', result.error || 'Failed to save draft');
             }
         } catch {
-            setSubmitResult({ success: false, error: 'Network error occurred while saving draft.' });
+            showToast('error', 'Network error while saving draft');
         } finally {
-            setIsSavingDraft(false);
+            setIsSaving(false);
         }
-    }, [buildPayload, parseFieldErrors]);
+    }, [buildPayload, parseFieldErrors, showToast]);
 
     /**
-     * PREVIEW
-     * - Uses SAME rendering pipeline as live article page
-     * - Generates ephemeral preview (no persistence)
-     * - Opens in preview panel
+     * Preview
      */
     const handlePreview = useCallback(async () => {
-        setIsLoadingPreview(true);
-        setShowPreview(false);
-        setPreviewData(null);
+        setIsPreviewLoading(true);
 
         try {
             const payload = buildPayload();
-
             const response = await fetch('/api/publish/preview', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -286,123 +256,30 @@ export default function PublishPage() {
             if (result.success && result.data?.preview) {
                 setPreviewData(result.data.preview);
                 setShowPreview(true);
-                setShowHistory(false);
             } else {
-                setSubmitResult({ success: false, error: result.error || 'Failed to generate preview' });
+                showToast('error', result.error || 'Failed to generate preview');
             }
         } catch {
-            setSubmitResult({ success: false, error: 'Network error occurred while generating preview.' });
+            showToast('error', 'Network error while generating preview');
         } finally {
-            setIsLoadingPreview(false);
+            setIsPreviewLoading(false);
         }
-    }, [buildPayload]);
+    }, [buildPayload, showToast]);
 
     /**
-     * VIEW HISTORY
-     * - Shows chronological list of saved drafts
-     * - Read-only
-     * - Allows restoring a previous version into editor
+     * Publish
      */
-    const handleHistory = useCallback(async () => {
-        setIsLoadingHistory(true);
-        setShowHistory(false);
-
-        try {
-            const response = await fetch('/api/publish/draft?history=true', {
-                method: 'GET',
-            });
-
-            const result: ApiResponse = await response.json();
-
-            if (result.success && result.data?.drafts) {
-                setDraftHistory(result.data.drafts);
-                setShowHistory(true);
-                setShowPreview(false);
-            } else {
-                setSubmitResult({ success: false, error: result.error || 'Failed to load history' });
-            }
-        } catch {
-            setSubmitResult({ success: false, error: 'Network error occurred while loading history.' });
-        } finally {
-            setIsLoadingHistory(false);
-        }
-    }, []);
-
-    /**
-     * RESTORE DRAFT from history
-     */
-    const handleRestoreDraft = useCallback(async (draftId: string) => {
-        try {
-            const response = await fetch(`/api/publish/draft?id=${encodeURIComponent(draftId)}`, {
-                method: 'GET',
-            });
-
-            const result: ApiResponse = await response.json();
-
-            if (result.success && result.data) {
-                const draft = result.data as unknown as {
-                    draft: {
-                        draftId: string;
-                        headline: string;
-                        subheadline: string;
-                        section: string;
-                        contentType: string;
-                        body: string;
-                        tags: string[];
-                        sources: string[];
-                        featured: boolean;
-                    };
-                };
-
-                const draftData = draft.draft;
-
-                setFormData({
-                    headline: draftData.headline || '',
-                    subheadline: draftData.subheadline || '',
-                    section: draftData.section || 'politics',
-                    contentType: draftData.contentType || 'news',
-                    body: draftData.body || '',
-                    tags: (draftData.tags || []).join(', '),
-                    sources: (draftData.sources || []).join(', '),
-                    placement: (draftData as any).placement || ((draftData as any).featured ? 'lead' : 'standard'),
-                    draftId: draftData.draftId,
-                    status: 'draft',
-                });
-
-                setShowHistory(false);
-                setSubmitResult({ success: true, message: 'Draft restored' });
-            } else {
-                setSubmitResult({ success: false, error: result.error || 'Failed to load draft' });
-            }
-        } catch {
-            setSubmitResult({ success: false, error: 'Network error occurred while loading draft.' });
-        }
-    }, []);
-
-    /**
-     * UNIFIED SUBMIT HANDLER
-     * - Dispatches to Save Draft or Publish based on dropdown status
-     */
-    const handleAction = useCallback(async (e: FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-
-        if (formData.status === 'draft') {
-            await handleSaveDraft();
-            return;
-        }
-
-        // Confirm before publishing (explicit action)
+    const handlePublish = useCallback(async () => {
+        // Confirm before publishing
         if (!window.confirm('Are you sure you want to publish this article?\n\nThis action is IRREVERSIBLE.')) {
             return;
         }
 
-        setIsSubmitting(true);
-        setSubmitResult(null);
+        setIsPublishing(true);
         setFieldErrors({});
 
         try {
-            const payload = buildPayload();
-
+            const payload = { ...buildPayload(), status: 'published' };
             const response = await fetch('/api/publish', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -412,446 +289,161 @@ export default function PublishPage() {
             const result: ApiResponse = await response.json();
 
             if (result.success) {
-                // Clear form after successful publish
                 setFormData(INITIAL_FORM_DATA);
                 setShowPreview(false);
-                setShowHistory(false);
-                setSubmitResult({ success: true, message: 'Article published successfully', data: result.data });
-            } else if (result.errors && result.errors.length > 0) {
+                showToast(
+                    'success',
+                    'Article published successfully',
+                    result.data?.url ? { url: result.data.url, label: 'View Article' } : undefined
+                );
+            } else if (result.errors?.length) {
                 setFieldErrors(parseFieldErrors(result.errors));
-                setSubmitResult({
-                    success: false,
-                    error: result.errors[0].message  // Show first specific error
-                });
+                showToast('error', result.errors[0].message);
             } else {
-                setSubmitResult(result);
+                showToast('error', result.error || 'Failed to publish article');
             }
         } catch {
-            setSubmitResult({ success: false, error: 'Network error occurred while publishing.' });
+            showToast('error', 'Network error while publishing');
         } finally {
-            setIsSubmitting(false);
+            setIsPublishing(false);
         }
-    }, [formData.status, buildPayload, handleSaveDraft, parseFieldErrors]);
+    }, [buildPayload, parseFieldErrors, showToast]);
 
     /**
-     * Close preview/history panels
+     * Logout
      */
-    const closePanel = useCallback(() => {
-        setShowPreview(false);
-        setShowHistory(false);
-    }, []);
-
-    /**
-     * Format date for display
-     */
-    const formatDate = (dateString: string): string => {
-        const date = new Date(dateString);
-        return date.toLocaleString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric',
-            hour: 'numeric',
-            minute: '2-digit',
-        });
-    };
-
-    async function handleLogout() {
+    const handleLogout = useCallback(async () => {
         try {
             await fetch('/api/auth/logout', { method: 'POST' });
             window.location.href = '/newsroom';
         } catch (error) {
             console.error('Logout failed', error);
         }
-    }
+    }, []);
+
+    /**
+     * Edit article (from database view)
+     */
+    const handleEdit = useCallback((article: ArticleEntry) => {
+        setFormData(article.data);
+        setFieldErrors({});
+        setShowPreview(false);
+        setMode('editor');
+    }, []);
+
+    /**
+     * Duplicate article
+     */
+    const handleDuplicate = useCallback(async (article: ArticleEntry) => {
+        try {
+            const response = await fetch('/api/publish/duplicate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: article.id,
+                    type: article.status,
+                    section: article.section,
+                    slug: article.slug,
+                }),
+            });
+
+            const result: ApiResponse = await response.json();
+
+            if (result.success) {
+                showToast('success', `Created: "${result.data?.headline}"`);
+                // Refresh articles list
+                const filter = mode === 'drafts' ? 'drafts' : mode === 'published' ? 'published' : undefined;
+                fetchArticles(filter);
+            } else {
+                showToast('error', result.error || 'Failed to duplicate article');
+            }
+        } catch {
+            showToast('error', 'Network error while duplicating');
+        }
+    }, [mode, fetchArticles, showToast]);
+
+    /**
+     * Delete article
+     */
+    const handleDelete = useCallback(async (article: ArticleEntry) => {
+        try {
+            const response = await fetch('/api/publish/delete', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: article.id,
+                    type: article.status,
+                    section: article.section,
+                    slug: article.slug,
+                }),
+            });
+
+            const result: ApiResponse = await response.json();
+
+            if (result.success) {
+                showToast('success', 'Article deleted');
+                // Refresh articles list
+                const filter = mode === 'drafts' ? 'drafts' : mode === 'published' ? 'published' : undefined;
+                fetchArticles(filter);
+            } else {
+                showToast('error', result.error || 'Failed to delete article');
+            }
+        } catch {
+            showToast('error', 'Network error while deleting');
+        }
+    }, [mode, fetchArticles, showToast]);
+
+    /**
+     * Close preview
+     */
+    const handleClosePreview = useCallback(() => {
+        setShowPreview(false);
+    }, []);
 
     return (
-        <form className={styles.page} onSubmit={handleAction}>
-            {/* TOP BAR */}
-            <div className={styles.topBar}>
-                {formData.draftId && (
-                    <span className={styles.draftIndicator}>
-                        Draft: {formData.draftId.slice(0, 12)}...
-                    </span>
+        <div className={styles.page}>
+            {/* Toast Notifications */}
+            <Toast toast={toast} onDismiss={() => setToast(null)} />
+
+            {/* Editorial Toolbar */}
+            <EditorialToolbar
+                mode={mode}
+                onModeChange={handleModeChange}
+                onNewArticle={handleNewArticle}
+                onSaveDraft={handleSaveDraft}
+                onPreview={handlePreview}
+                onPublish={handlePublish}
+                onLogout={handleLogout}
+                isSaving={isSaving}
+                isPreviewLoading={isPreviewLoading}
+                isPublishing={isPublishing}
+                canPublish={canPublish(formData)}
+                draftId={formData.draftId}
+            />
+
+            {/* Main Workspace */}
+            <main className={styles.workspace}>
+                {mode === 'editor' ? (
+                    <ArticleEditor
+                        formData={formData}
+                        onFormChange={handleFormChange}
+                        fieldErrors={fieldErrors}
+                        clientHints={clientHints}
+                        previewData={previewData}
+                        showPreview={showPreview}
+                        onClosePreview={handleClosePreview}
+                    />
+                ) : (
+                    <ArticleDatabase
+                        articles={articles}
+                        mode={mode}
+                        isLoading={isLoadingArticles}
+                        onEdit={handleEdit}
+                        onDuplicate={handleDuplicate}
+                        onDelete={handleDelete}
+                    />
                 )}
-                <div className={styles.topBarActions}>
-                    <button
-                        type="button"
-                        className={styles.topBarAction}
-                        onClick={handleSaveDraft}
-                        disabled={isSavingDraft}
-                    >
-                        {isSavingDraft ? 'Saving...' : 'Save Draft'}
-                    </button>
-                    <button
-                        type="button"
-                        className={styles.topBarAction}
-                        onClick={handlePreview}
-                        disabled={isLoadingPreview}
-                    >
-                        {isLoadingPreview ? 'Loading...' : 'Preview'}
-                    </button>
-                    <button
-                        type="button"
-                        className={styles.topBarAction}
-                        onClick={handleHistory}
-                        disabled={isLoadingHistory}
-                    >
-                        {isLoadingHistory ? 'Loading...' : 'History'}
-                    </button>
-                    <button
-                        type="button"
-                        onClick={handleLogout}
-                        className={styles.topBarAction}
-                        style={{ marginLeft: '12px', color: '#666' }}
-                    >
-                        Logout
-                    </button>
-                </div>
-            </div>
-
-            {/* TOAST NOTIFICATION - positioned at top of page */}
-            {submitResult && (
-                <div className={`${styles.toast} ${submitResult.success ? styles.toastSuccess : styles.toastError}`}>
-                    <span className={styles.toastMessage}>
-                        {submitResult.success
-                            ? (submitResult.message || 'Success')
-                            : (submitResult.error || 'An error occurred')
-                        }
-                    </span>
-                    {submitResult.data?.url && (
-                        <a href={submitResult.data.url} target="_blank" rel="noreferrer" className={styles.toastLink}>
-                            View Article →
-                        </a>
-                    )}
-                    <button
-                        type="button"
-                        className={styles.toastClose}
-                        onClick={() => setSubmitResult(null)}
-                    >
-                        ×
-                    </button>
-                </div>
-            )}
-
-            {/* MAIN LAYOUT */}
-            <div className={styles.mainLayout}>
-                {/* LEFT COLUMN: WRITING CANVAS */}
-                <div className={styles.writingCanvas}>
-                    {/* 1. Headline */}
-                    <div className={styles.fieldWrapper}>
-                        <input
-                            type="text"
-                            name="headline"
-                            className={`${styles.headlineInput} ${fieldErrors.headline ? styles.inputError : ''}`}
-                            placeholder="Headline: Enter Article Title"
-                            value={formData.headline}
-                            onChange={handleInputChange}
-                            autoComplete="off"
-                        />
-                        {fieldErrors.headline && (
-                            <span className={styles.fieldError}>{fieldErrors.headline}</span>
-                        )}
-                        {!fieldErrors.headline && clientHints.headline && (
-                            <span className={styles.fieldHint}>{clientHints.headline}</span>
-                        )}
-                    </div>
-
-                    {/* 2. Subheadline */}
-                    <div className={styles.fieldWrapper}>
-                        <input
-                            type="text"
-                            name="subheadline"
-                            className={`${styles.subheadlineInput} ${fieldErrors.subheadline ? styles.inputError : ''}`}
-                            placeholder="Subheadline: Enter Summary"
-                            value={formData.subheadline}
-                            onChange={handleInputChange}
-                            autoComplete="off"
-                        />
-                        {fieldErrors.subheadline && (
-                            <span className={styles.fieldError}>{fieldErrors.subheadline}</span>
-                        )}
-                        {!fieldErrors.subheadline && clientHints.subheadline && (
-                            <span className={styles.fieldHint}>{clientHints.subheadline}</span>
-                        )}
-                    </div>
-
-                    {/* 3. Body Editor */}
-                    <div className={styles.fieldWrapper}>
-                        <textarea
-                            name="body"
-                            className={`${styles.bodyEditor} ${fieldErrors.body ? styles.inputError : ''}`}
-                            placeholder="Start writing article text here..."
-                            value={formData.body}
-                            onChange={handleInputChange}
-                        />
-                        {fieldErrors.body && (
-                            <span className={styles.fieldError}>{fieldErrors.body}</span>
-                        )}
-                    </div>
-                </div>
-
-                {/* RIGHT COLUMN: PUBLISHING CONTROLS */}
-                <div className={styles.controlsPanel}>
-                    {/* Preview Panel */}
-                    {showPreview && previewData && (
-                        <div className={styles.previewPanel}>
-                            <div className={styles.panelHeader}>
-                                <span className={styles.panelTitle}>Preview</span>
-                                <button type="button" className={styles.closeButton} onClick={closePanel}>×</button>
-                            </div>
-                            <div className={styles.previewContent}>
-                                <div className={styles.previewSection}>{previewData.section.toUpperCase()}</div>
-                                <h1 className={styles.previewHeadline}>{previewData.headline}</h1>
-                                {previewData.subheadline && (
-                                    <p className={styles.previewSubheadline}>{previewData.subheadline}</p>
-                                )}
-                                <div className={styles.previewMeta}>
-                                    <span className={styles.previewType}>{previewData.contentType}</span>
-                                    {previewData.placement === 'lead' && <span className={styles.previewFeatured}>Lead Story</span>}
-                                    {previewData.placement === 'top' && <span className={styles.previewFeatured}>Top Story</span>}
-                                </div>
-                                <div className={styles.previewBody}>
-                                    {previewData.body.split('\n').map((paragraph, i) => (
-                                        <p key={i}>{paragraph}</p>
-                                    ))}
-                                </div>
-                                {previewData.tags.length > 0 && (
-                                    <div className={styles.previewTags}>
-                                        {previewData.tags.map(tag => (
-                                            <span key={tag} className={styles.previewTag}>{tag}</span>
-                                        ))}
-                                    </div>
-                                )}
-                                {previewData.sources.length > 0 && (
-                                    <div className={styles.previewSources}>
-                                        <strong>Sources:</strong>
-                                        <ul>
-                                            {previewData.sources.map((source, i) => (
-                                                <li key={i}>{source}</li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* History Panel */}
-                    {showHistory && (
-                        <div className={styles.historyPanel}>
-                            <div className={styles.panelHeader}>
-                                <span className={styles.panelTitle}>Draft History</span>
-                                <button type="button" className={styles.closeButton} onClick={closePanel}>×</button>
-                            </div>
-                            <div className={styles.historyContent}>
-                                {draftHistory.length === 0 ? (
-                                    <p className={styles.emptyHistory}>No saved drafts</p>
-                                ) : (
-                                    <ul className={styles.historyList}>
-                                        {draftHistory.map(draft => (
-                                            <li key={draft.draftId} className={styles.historyItem}>
-                                                <div className={styles.historyItemContent}>
-                                                    <span className={styles.historyHeadline}>
-                                                        {draft.headline || 'Untitled'}
-                                                    </span>
-                                                    <span className={styles.historyMeta}>
-                                                        {draft.section} · {formatDate(draft.savedAt)}
-                                                    </span>
-                                                </div>
-                                                <button
-                                                    type="button"
-                                                    className={styles.restoreButton}
-                                                    onClick={() => handleRestoreDraft(draft.draftId)}
-                                                >
-                                                    Restore
-                                                </button>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                )}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Controls - hidden when panels are open */}
-                    {!showPreview && !showHistory && (
-                        <>
-                            {/* 1. Section Selector */}
-                            <div className={styles.controlGroup}>
-                                <label className={styles.label}>Section</label>
-                                <select
-                                    name="section"
-                                    value={formData.section}
-                                    onChange={handleInputChange}
-                                    className={`${styles.select} ${fieldErrors.section ? styles.inputError : ''}`}
-                                >
-                                    {SECTIONS.map(s => (
-                                        <option key={s.value} value={s.value}>{s.label}</option>
-                                    ))}
-                                </select>
-                                {fieldErrors.section && (
-                                    <span className={styles.fieldError}>{fieldErrors.section}</span>
-                                )}
-                            </div>
-
-                            {/* 2. Content Type */}
-                            <div className={styles.controlGroup}>
-                                <label className={styles.label}>Content Type</label>
-                                <select
-                                    name="contentType"
-                                    value={formData.contentType}
-                                    onChange={handleInputChange}
-                                    className={`${styles.select} ${fieldErrors.contentType ? styles.inputError : ''}`}
-                                >
-                                    {CONTENT_TYPES.map(t => (
-                                        <option key={t.value} value={t.value}>{t.label}</option>
-                                    ))}
-                                </select>
-                                {fieldErrors.contentType && (
-                                    <span className={styles.fieldError}>{fieldErrors.contentType}</span>
-                                )}
-                                {!fieldErrors.contentType && clientHints.contentType && (
-                                    <span className={styles.fieldWarning}>⚠ {clientHints.contentType}</span>
-                                )}
-                            </div>
-
-                            {/* 3. Tags */}
-                            <div className={styles.controlGroup}>
-                                <label className={styles.label}>Tags <span className={styles.optional}>(optional, max 10)</span></label>
-                                <input
-                                    type="text"
-                                    name="tags"
-                                    className={`${styles.input} ${fieldErrors.tags ? styles.inputError : ''}`}
-                                    placeholder="Add tags, separated by commas..."
-                                    value={formData.tags}
-                                    onChange={handleInputChange}
-                                />
-                                {fieldErrors.tags && (
-                                    <span className={styles.fieldError}>{fieldErrors.tags}</span>
-                                )}
-                            </div>
-
-                            {/* 4. Sources */}
-                            <div className={styles.controlGroup}>
-                                <label className={styles.label}>Sources <span className={styles.optional}>(optional)</span></label>
-                                <input
-                                    type="text"
-                                    name="sources"
-                                    className={`${styles.input} ${fieldErrors.sources ? styles.inputError : ''}`}
-                                    placeholder="Add sources, separated by commas..."
-                                    value={formData.sources}
-                                    onChange={handleInputChange}
-                                />
-                                {fieldErrors.sources && (
-                                    <span className={styles.fieldError}>{fieldErrors.sources}</span>
-                                )}
-                            </div>
-
-                            {/* 5. Homepage Placement */}
-                            <div className={styles.controlGroup}>
-                                <label className={styles.label}>Homepage Placement</label>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '8px' }}>
-                                    {/* Lead Story Option (Hero) */}
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            // Toggle: Lead button maps to 'lead' value (Hero)
-                                            setFormData(prev => ({
-                                                ...prev,
-                                                placement: prev.placement === 'lead' ? 'standard' : 'lead'
-                                            }));
-                                        }}
-                                        style={{
-                                            padding: '16px 12px',
-                                            border: formData.placement === 'lead' ? '2px solid #000' : '1px solid #e5e5e5',
-                                            borderRadius: '2px',
-                                            background: formData.placement === 'lead' ? '#fff' : '#fafafa',
-                                            cursor: 'pointer',
-                                            textAlign: 'left',
-                                            transition: 'all 0.2s ease',
-                                            boxShadow: formData.placement === 'lead' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none'
-                                        }}
-                                    >
-                                        <div style={{ fontWeight: 700, fontSize: '13px', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em', color: formData.placement === 'lead' ? '#000' : '#666' }}>Lead Story</div>
-                                        <div style={{ fontSize: '11px', color: '#888', lineHeight: 1.4, fontStyle: 'italic' }}>
-                                            The main hero story on the homepage (Big headline).
-                                        </div>
-                                    </button>
-
-                                    {/* Top Story Option (Secondary) */}
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            // Toggle: Top button maps to 'top' value (Secondary)
-                                            setFormData(prev => ({
-                                                ...prev,
-                                                placement: prev.placement === 'top' ? 'standard' : 'top'
-                                            }));
-                                        }}
-                                        style={{
-                                            padding: '16px 12px',
-                                            border: formData.placement === 'top' ? '2px solid #000' : '1px solid #e5e5e5',
-                                            borderRadius: '2px',
-                                            background: formData.placement === 'top' ? '#fff' : '#fafafa',
-                                            cursor: 'pointer',
-                                            textAlign: 'left',
-                                            transition: 'all 0.2s ease',
-                                            boxShadow: formData.placement === 'top' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none'
-                                        }}
-                                    >
-                                        <div style={{ fontWeight: 700, fontSize: '13px', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em', color: formData.placement === 'top' ? '#000' : '#666' }}>Top Story</div>
-                                        <div style={{ fontSize: '11px', color: '#888', lineHeight: 1.4, fontStyle: 'italic' }}>
-                                            Secondary lead story in the top stories grid.
-                                        </div>
-                                    </button>
-                                </div>
-                                <div style={{ fontSize: '11px', color: '#999', marginTop: '10px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                    <span style={{ fontSize: '14px' }}>ℹ</span>
-                                    {formData.placement === 'standard'
-                                        ? 'Article will appear in its section normally.'
-                                        : `Currently selected: ${formData.placement === 'lead' ? 'Hero' : 'Secondary Lead'}. Click again to deselect.`}
-                                </div>
-                            </div>
-
-
-                            {/* 6. Action Selector (Draft/Publish) */}
-                            <div className={styles.controlGroup} style={{ marginTop: '20px', borderTop: '1px solid #eee', paddingTop: '20px' }}>
-                                <label className={styles.label}>Publishing Mode</label>
-                                <select
-                                    name="status"
-                                    value={formData.status}
-                                    onChange={handleInputChange}
-                                    className={styles.select}
-                                >
-                                    <option value="draft">Draft (Save privately)</option>
-                                    <option value="published">Publish (Live on site)</option>
-                                </select>
-                            </div>
-
-                            {/* 7. Action Button */}
-                            <button
-                                type="submit"
-                                className={formData.status === 'published' ? styles.publishButton : styles.draftButton}
-                                style={formData.status === 'draft' ? {
-                                    width: '100%',
-                                    padding: '12px',
-                                    backgroundColor: '#fff',
-                                    color: '#000',
-                                    border: '1px solid #000',
-                                    fontWeight: 600,
-                                    cursor: 'pointer',
-                                    marginTop: '12px'
-                                } : {}}
-                                disabled={isSubmitting || isSavingDraft}
-                            >
-                                {formData.status === 'published'
-                                    ? (isSubmitting ? 'Publishing...' : 'Publish Now')
-                                    : (isSavingDraft ? 'Saving Draft...' : 'Save Draft')}
-                            </button>
-                        </>
-                    )}
-                </div>
-            </div>
-        </form>
+            </main>
+        </div>
     );
 }
