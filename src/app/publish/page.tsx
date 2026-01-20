@@ -57,7 +57,7 @@ interface PreviewData {
     body: string;
     tags: string[];
     sources: string[];
-    featured: boolean;
+    placement: 'lead' | 'top' | 'standard';
     previewDate: string;
 }
 
@@ -78,9 +78,10 @@ interface FormData {
     contentType: string;
     body: string;
     tags: string;
-    featured: boolean;
+    placement: 'lead' | 'top' | 'standard';
     sources: string;
     draftId: string | null;
+    status: 'draft' | 'published';
 }
 
 /** Field-level errors from server */
@@ -93,9 +94,10 @@ const INITIAL_FORM_DATA: FormData = {
     contentType: 'news',
     body: '',
     tags: '',
-    featured: false,
+    placement: 'standard',
     sources: '',
     draftId: null,
+    status: 'draft',
 };
 
 /** Client-side UX validation (NOT business logic - just helper hints) */
@@ -198,8 +200,9 @@ export default function PublishPage() {
             body: formData.body,
             tags: tagsArray,
             sources: sourcesArray,
-            featured: formData.featured,
+            placement: formData.placement,
             draftId: formData.draftId,
+            status: formData.status,
         };
     }, [formData]);
 
@@ -361,8 +364,9 @@ export default function PublishPage() {
                     body: draftData.body || '',
                     tags: (draftData.tags || []).join(', '),
                     sources: (draftData.sources || []).join(', '),
-                    featured: draftData.featured || false,
+                    placement: (draftData as any).placement || ((draftData as any).featured ? 'lead' : 'standard'),
                     draftId: draftData.draftId,
+                    status: 'draft',
                 });
 
                 setShowHistory(false);
@@ -376,14 +380,16 @@ export default function PublishPage() {
     }, []);
 
     /**
-     * PUBLISH NOW
-     * - Requires full validation of ALL rules
-     * - Requires explicit user action
-     * - Writes final content file
-     * - Removes draft version
+     * UNIFIED SUBMIT HANDLER
+     * - Dispatches to Save Draft or Publish based on dropdown status
      */
-    const handlePublish = useCallback(async (e: FormEvent<HTMLFormElement>) => {
+    const handleAction = useCallback(async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+
+        if (formData.status === 'draft') {
+            await handleSaveDraft();
+            return;
+        }
 
         // Confirm before publishing (explicit action)
         if (!window.confirm('Are you sure you want to publish this article?\n\nThis action is IRREVERSIBLE.')) {
@@ -395,10 +401,7 @@ export default function PublishPage() {
         setFieldErrors({});
 
         try {
-            const payload = {
-                ...buildPayload(),
-                status: 'published' as const,
-            };
+            const payload = buildPayload();
 
             const response = await fetch('/api/publish', {
                 method: 'POST',
@@ -428,7 +431,7 @@ export default function PublishPage() {
         } finally {
             setIsSubmitting(false);
         }
-    }, [buildPayload, parseFieldErrors]);
+    }, [formData.status, buildPayload, handleSaveDraft, parseFieldErrors]);
 
     /**
      * Close preview/history panels
@@ -462,7 +465,7 @@ export default function PublishPage() {
     }
 
     return (
-        <form className={styles.page} onSubmit={handlePublish}>
+        <form className={styles.page} onSubmit={handleAction}>
             {/* TOP BAR */}
             <div className={styles.topBar}>
                 {formData.draftId && (
@@ -604,7 +607,8 @@ export default function PublishPage() {
                                 )}
                                 <div className={styles.previewMeta}>
                                     <span className={styles.previewType}>{previewData.contentType}</span>
-                                    {previewData.featured && <span className={styles.previewFeatured}>Featured</span>}
+                                    {previewData.placement === 'lead' && <span className={styles.previewFeatured}>Lead Story</span>}
+                                    {previewData.placement === 'top' && <span className={styles.previewFeatured}>Top Story</span>}
                                 </div>
                                 <div className={styles.previewBody}>
                                     {previewData.body.split('\n').map((paragraph, i) => (
@@ -743,28 +747,106 @@ export default function PublishPage() {
                                 )}
                             </div>
 
-                            {/* 5. Featured Toggle */}
+                            {/* 5. Homepage Placement */}
                             <div className={styles.controlGroup}>
-                                <label className={styles.toggleLabel}>
-                                    <span>Featured Article</span>
-                                    <input
-                                        type="checkbox"
-                                        name="featured"
-                                        checked={formData.featured}
-                                        onChange={handleInputChange}
-                                    />
-                                </label>
-                                <span className={styles.toggleHint}>Affects homepage selection only</span>
+                                <label className={styles.label}>Homepage Placement</label>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '8px' }}>
+                                    {/* Lead Story Option (Hero) */}
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            // Toggle: Lead button maps to 'lead' value (Hero)
+                                            setFormData(prev => ({
+                                                ...prev,
+                                                placement: prev.placement === 'lead' ? 'standard' : 'lead'
+                                            }));
+                                        }}
+                                        style={{
+                                            padding: '16px 12px',
+                                            border: formData.placement === 'lead' ? '2px solid #000' : '1px solid #e5e5e5',
+                                            borderRadius: '2px',
+                                            background: formData.placement === 'lead' ? '#fff' : '#fafafa',
+                                            cursor: 'pointer',
+                                            textAlign: 'left',
+                                            transition: 'all 0.2s ease',
+                                            boxShadow: formData.placement === 'lead' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none'
+                                        }}
+                                    >
+                                        <div style={{ fontWeight: 700, fontSize: '13px', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em', color: formData.placement === 'lead' ? '#000' : '#666' }}>Lead Story</div>
+                                        <div style={{ fontSize: '11px', color: '#888', lineHeight: 1.4, fontStyle: 'italic' }}>
+                                            The main hero story on the homepage (Big headline).
+                                        </div>
+                                    </button>
+
+                                    {/* Top Story Option (Secondary) */}
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            // Toggle: Top button maps to 'top' value (Secondary)
+                                            setFormData(prev => ({
+                                                ...prev,
+                                                placement: prev.placement === 'top' ? 'standard' : 'top'
+                                            }));
+                                        }}
+                                        style={{
+                                            padding: '16px 12px',
+                                            border: formData.placement === 'top' ? '2px solid #000' : '1px solid #e5e5e5',
+                                            borderRadius: '2px',
+                                            background: formData.placement === 'top' ? '#fff' : '#fafafa',
+                                            cursor: 'pointer',
+                                            textAlign: 'left',
+                                            transition: 'all 0.2s ease',
+                                            boxShadow: formData.placement === 'top' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none'
+                                        }}
+                                    >
+                                        <div style={{ fontWeight: 700, fontSize: '13px', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em', color: formData.placement === 'top' ? '#000' : '#666' }}>Top Story</div>
+                                        <div style={{ fontSize: '11px', color: '#888', lineHeight: 1.4, fontStyle: 'italic' }}>
+                                            Secondary lead story in the top stories grid.
+                                        </div>
+                                    </button>
+                                </div>
+                                <div style={{ fontSize: '11px', color: '#999', marginTop: '10px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                    <span style={{ fontSize: '14px' }}>ℹ</span>
+                                    {formData.placement === 'standard'
+                                        ? 'Article will appear in its section normally.'
+                                        : `Currently selected: ${formData.placement === 'lead' ? 'Hero' : 'Secondary Lead'}. Click again to deselect.`}
+                                </div>
                             </div>
 
 
-                            {/* 6. Publish Button */}
+                            {/* 6. Action Selector (Draft/Publish) */}
+                            <div className={styles.controlGroup} style={{ marginTop: '20px', borderTop: '1px solid #eee', paddingTop: '20px' }}>
+                                <label className={styles.label}>Publishing Mode</label>
+                                <select
+                                    name="status"
+                                    value={formData.status}
+                                    onChange={handleInputChange}
+                                    className={styles.select}
+                                >
+                                    <option value="draft">Draft (Save privately)</option>
+                                    <option value="published">Publish (Live on site)</option>
+                                </select>
+                            </div>
+
+                            {/* 7. Action Button */}
                             <button
                                 type="submit"
-                                className={styles.publishButton}
-                                disabled={isSubmitting}
+                                className={formData.status === 'published' ? styles.publishButton : styles.draftButton}
+                                style={formData.status === 'draft' ? {
+                                    width: '100%',
+                                    padding: '12px',
+                                    backgroundColor: '#fff',
+                                    color: '#000',
+                                    border: '1px solid #000',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    marginTop: '12px'
+                                } : {}}
+                                disabled={isSubmitting || isSavingDraft}
                             >
-                                {isSubmitting ? 'Publishing...' : 'Publish Now'}
+                                {formData.status === 'published'
+                                    ? (isSubmitting ? 'Publishing...' : 'Publish Now')
+                                    : (isSavingDraft ? 'Saving Draft...' : 'Save Draft')}
                             </button>
                         </>
                     )}

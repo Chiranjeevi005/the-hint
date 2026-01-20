@@ -55,23 +55,23 @@ export async function GET(request: NextRequest) {
     const token = searchParams.get('token');
 
     if (!token) {
-        return NextResponse.json({ error: 'Missing token' }, { status: 400 });
+        return NextResponse.redirect(new URL('/newsroom?error=Missing+token', request.url));
     }
 
     const payload = await verifyMagicToken(token);
 
     if (!payload || !payload.email) {
-        return NextResponse.json({ error: 'Invalid or expired magic link' }, { status: 401 });
+        return NextResponse.redirect(new URL('/newsroom?error=Invalid+or+expired+link', request.url));
     }
 
     const authorizedEmail = process.env.AUTHORIZED_EDITOR_EMAIL;
     if (payload.email !== authorizedEmail) {
-        return NextResponse.json({ error: 'Unauthorized email' }, { status: 401 });
+        return NextResponse.redirect(new URL('/newsroom?error=Unauthorized+email', request.url));
     }
 
     // Check for reuse
     if (payload.jti && await isTokenUsed(payload.jti)) {
-        return NextResponse.json({ error: 'Magic link already used. Please request a new one.' }, { status: 401 });
+        return NextResponse.redirect(new URL('/newsroom?error=Link+already+used', request.url));
     }
 
     if (payload.jti) {

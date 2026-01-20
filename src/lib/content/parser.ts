@@ -176,7 +176,7 @@ function validateFrontmatter(
     }
 
     // Validate contentType enum
-    const validContentTypes = ['news', 'analysis', 'opinion'];
+    const validContentTypes = ['news', 'opinion'];
     if (!validContentTypes.includes(data.contentType as string)) {
         errors.push(`contentType must be one of: ${validContentTypes.join(', ')}`);
     }
@@ -209,7 +209,15 @@ function validateFrontmatter(
         errors.push('sources must be an array of strings');
     }
 
-    // Validate featured boolean
+    // Validate placement
+    const validPlacements = ['lead', 'top', 'standard'];
+    if (data.placement !== undefined && typeof data.placement !== 'string') {
+        errors.push('placement must be a string');
+    } else if (data.placement !== undefined && !validPlacements.includes(data.placement as string)) {
+        errors.push(`placement must be one of: ${validPlacements.join(', ')}`);
+    }
+
+    // Validate featured boolean (legacy)
     if (data.featured !== undefined && typeof data.featured !== 'boolean') {
         errors.push('featured must be a boolean');
     }
@@ -226,13 +234,19 @@ function validateFrontmatter(
         );
     }
 
+    // Map legacy featured to placement
+    let placement: 'lead' | 'top' | 'standard' | undefined = data.placement as 'lead' | 'top' | 'standard' | undefined;
+    if (!placement && data.featured === true) {
+        placement = 'lead';
+    }
+
     return {
         title: data.title as string,
         subtitle: data.subtitle as string,
-        contentType: data.contentType as 'news' | 'analysis' | 'opinion',
+        contentType: data.contentType as 'news' | 'opinion',
         publishedAt: data.publishedAt as string,
         updatedAt: (data.updatedAt as string | null) ?? null,
-        featured: (data.featured as boolean) ?? false,
+        placement: placement ?? 'standard',
         image: (data.image as string) ?? undefined,
         tags: (data.tags as string[]) ?? [],
         sources: (data.sources as string[]) ?? [],

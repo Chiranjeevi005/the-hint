@@ -25,6 +25,10 @@ export const VALID_SECTIONS: Section[] = [
 export type ArticleStatus = 'draft' | 'published';
 export const VALID_STATUSES: ArticleStatus[] = ['draft', 'published'];
 
+/** Valid placements */
+export type Placement = 'lead' | 'top' | 'standard';
+export const VALID_PLACEMENTS: Placement[] = ['lead', 'top', 'standard'];
+
 /** Validation constants */
 export const HEADLINE_MIN_LENGTH = 10;
 export const HEADLINE_MAX_LENGTH = 150;
@@ -151,10 +155,10 @@ export function isValidStatus(value: unknown): value is ArticleStatus {
 }
 
 /**
- * Validate that featured is a boolean
+ * Validate placement
  */
-export function isValidFeatured(value: unknown): boolean {
-    return typeof value === 'boolean';
+export function isValidPlacement(value: unknown): value is Placement {
+    return typeof value === 'string' && VALID_PLACEMENTS.includes(value as Placement);
 }
 
 /**
@@ -168,7 +172,7 @@ export interface PublishArticleInput {
     contentType: unknown;
     body: unknown;
     tags: unknown;
-    featured: unknown;
+    placement: unknown;
     status: unknown;
     sources: unknown;
 }
@@ -183,7 +187,7 @@ export interface DraftArticleInput {
     contentType?: unknown;
     body: unknown;
     tags?: unknown;
-    featured?: unknown;
+    placement?: unknown;
     sources?: unknown;
     draftId?: unknown;
 }
@@ -198,7 +202,7 @@ export interface ValidatedArticleData {
     contentType: ContentType;
     body: string;
     tags: string[];
-    featured: boolean;
+    placement: Placement;
     status: ArticleStatus;
     sources: string[];
     slug: string;
@@ -215,7 +219,7 @@ export interface ValidatedDraftData {
     contentType: ContentType;
     body: string;
     tags: string[];
-    featured: boolean;
+    placement: Placement;
     sources: string[];
     savedAt: string;
 }
@@ -306,9 +310,12 @@ export function validateArticleInput(input: PublishArticleInput): ValidationResu
         });
     }
 
-    // FEATURED validation
-    if (typeof input.featured !== 'boolean') {
-        errors.push({ field: 'featured', message: 'Featured must be a boolean value' });
+    // PLACEMENT validation
+    if (!isValidPlacement(input.placement)) {
+        errors.push({
+            field: 'placement',
+            message: `Placement must be one of: ${VALID_PLACEMENTS.join(', ')}`
+        });
     }
 
     // TAGS validation (optional but check format)
@@ -386,7 +393,7 @@ export function transformToValidatedData(input: PublishArticleInput): ValidatedA
     const body = sanitizeString(input.body);
     const section = input.section as Section;
     const contentType = input.contentType as ContentType;
-    const featured = input.featured === true;
+    const placement = input.placement as Placement;
     const status = input.status as ArticleStatus;
     const tags = normalizeTags(input.tags);
     const sources = sanitizeStringArray(input.sources);
@@ -399,7 +406,7 @@ export function transformToValidatedData(input: PublishArticleInput): ValidatedA
         contentType,
         body,
         tags,
-        featured,
+        placement,
         status,
         sources,
         slug,
@@ -415,7 +422,7 @@ export function transformToDraftData(input: DraftArticleInput, draftId?: string)
     const body = sanitizeString(input.body);
     const section = isValidSection(input.section) ? input.section : 'politics';
     const contentType = isValidContentType(input.contentType) ? input.contentType : 'news';
-    const featured = input.featured === true;
+    const placement = isValidPlacement(input.placement) ? input.placement : 'standard';
     const tags = normalizeTags(input.tags);
     const sources = sanitizeStringArray(input.sources);
 
@@ -427,7 +434,7 @@ export function transformToDraftData(input: DraftArticleInput, draftId?: string)
         contentType,
         body,
         tags,
-        featured,
+        placement,
         sources,
         savedAt: new Date().toISOString(),
     };

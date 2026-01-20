@@ -46,8 +46,8 @@ export interface Article {
     /** ISO 8601 update timestamp, null if never updated */
     updatedAt: string | null;
 
-    /** Whether this article should be featured prominently */
-    featured: boolean;
+    /** Placement on homepage: lead, top, or standard */
+    placement: 'lead' | 'top' | 'standard';
 
     /** Categorization tags for the article */
     tags: string[];
@@ -73,10 +73,11 @@ export interface ArticleFrontmatter {
     contentType: ContentType;
     publishedAt: string;
     updatedAt?: string | null;
-    featured?: boolean;
+    placement?: 'lead' | 'top' | 'standard';
     image?: string;
     tags?: string[];
     sources?: string[];
+    status?: 'published' | 'draft';
 }
 
 /**

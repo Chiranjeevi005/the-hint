@@ -25,7 +25,8 @@ export {
     isValidContentType,
     isValidSection,
     isValidStatus,
-    isValidFeatured,
+    isValidPlacement,
+    VALID_PLACEMENTS,
     // Main validation functions
     validateArticleInput,
     validateDraftInput,
@@ -37,6 +38,7 @@ export {
 export type {
     ContentType,
     ArticleStatus,
+    Placement,
     FieldValidationError,
     ValidationResult,
     PublishArticleInput,

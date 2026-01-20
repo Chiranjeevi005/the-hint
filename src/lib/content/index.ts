@@ -23,7 +23,7 @@ export {
     getAllArticles,
     getArticleBySlug,
     getArticlesBySection,
-    getFeaturedArticles,
+    getLeadArticles,
     getArticlesByTag,
     getAllTags,
     getValidSections,

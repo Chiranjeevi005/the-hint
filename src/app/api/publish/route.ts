@@ -39,7 +39,7 @@ function generateFrontmatter(data: ValidatedArticleData): string {
     lines.push(`status: published`);  // Always published when going through this route
     lines.push(`publishedAt: ${new Date().toISOString()}`);
     lines.push(`updatedAt: null`);
-    lines.push(`featured: ${data.featured}`);
+    lines.push(`placement: ${data.placement}`);
 
     // Tags array
     if (data.tags.length > 0) {

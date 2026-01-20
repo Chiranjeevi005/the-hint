@@ -7,7 +7,7 @@ export async function sendMagicLinkEmail(email: string, token: string) {
     const smtpUser = process.env.SMTP_USER;
     const smtpPass = process.env.SMTP_PASS;
     const fromEmail = process.env.FROM_EMAIL;
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002';
 
     if (!smtpHost || !smtpPort || !smtpUser || !smtpPass || !fromEmail) {
         console.error('Missing SMTP configuration');

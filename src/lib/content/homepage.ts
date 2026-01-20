@@ -54,10 +54,10 @@ function isOpinion(article: Article): boolean {
 }
 
 /**
- * Check if an article is featured
+ * Check if an article has a specific placement
  */
-function isFeatured(article: Article): boolean {
-    return article.featured === true;
+function isPlacement(article: Article, placement: 'lead' | 'top'): boolean {
+    return article.placement === placement;
 }
 
 /**
@@ -122,9 +122,9 @@ function takeFirst(articles: Article[], count: number): Article[] {
  * - If none, return null
  */
 function selectLeadStory(articles: Article[]): Article | null {
-    // Filter: featured AND not opinion
+    // Filter: placement='lead' AND not opinion
     const candidates = articles.filter(
-        article => isFeatured(article) && !isOpinion(article)
+        article => isPlacement(article, 'lead') && !isOpinion(article)
     );
 
     if (candidates.length === 0) {
@@ -209,16 +209,17 @@ function selectOpinionArticles(articles: Article[]): Article[] {
  * Editorial Rules Applied:
  * 
  * LEAD STORY:
- * - Must have featured === true
+ * - Must have placement === 'lead'
  * - Must not be opinion
- * - Most recently published among featured
+ * - Most recently published among lead candidates
  * - Returns null if none qualify
  * 
  * TOP STORIES:
  * - Excludes lead story
  * - Excludes opinion
+ * - Prioritizes placement === 'top'
+ * - Fill with standard articles (sorted by date)
  * - Maximum 5 articles
- * - Sorted by publishedAt descending
  * 
  * SECTION BLOCKS (Crime, Court, Politics, World Affairs):
  * - Latest 3 articles from each section
@@ -266,7 +267,19 @@ export function getHomepageData(): HomepageData {
     const topStoryCandidates = excludeUsed(
         allArticles.filter(a => !isOpinion(a))
     );
-    const topStories = takeFirst(sortByPublishedAtDesc(topStoryCandidates), 5);
+
+    // Sort by placement='top' priority, then publishedAt descending
+    const sortedTopStories = [...topStoryCandidates].sort((a, b) => {
+        const isTopA = isPlacement(a, 'top');
+        const isTopB = isPlacement(b, 'top');
+
+        if (isTopA && !isTopB) return -1;
+        if (!isTopA && isTopB) return 1;
+
+        return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
+    });
+
+    const topStories = takeFirst(sortedTopStories, 5);
     markUsed(topStories);
 
     // Build section blocks (each excluding previously used articles)

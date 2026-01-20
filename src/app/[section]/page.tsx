@@ -11,6 +11,9 @@ import { notFound } from 'next/navigation';
 import { getSectionPageData, InvalidSectionError } from '@/lib/content';
 import { SectionHeader, StoryList, Pagination, LeadStory } from '@/components/editorial';
 
+// Revalidate section pages every 60 seconds
+export const revalidate = 60;
+
 interface SectionPageProps {
     params: Promise<{
         section: string;

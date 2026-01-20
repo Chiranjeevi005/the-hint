@@ -84,6 +84,24 @@ function readArticleFile(filePath: string, expectedSection: Section): Article {
         );
     }
 
+    // Validate: status must be published (or undefined/null assumed published for legacy, but we strictly check publishedAt)
+    if (frontmatter.status === 'draft') {
+        throw new ContentValidationError(
+            'Article is a draft',
+            relativePath,
+            'status'
+        );
+    }
+
+    // Validate: publishedAt must be present
+    if (!frontmatter.publishedAt) {
+        throw new ContentValidationError(
+            'Article missing publishedAt date',
+            relativePath,
+            'publishedAt'
+        );
+    }
+
     // Validate: body cannot be empty
     if (!body || body.trim().length === 0) {
         throw new ContentValidationError(
@@ -91,6 +109,20 @@ function readArticleFile(filePath: string, expectedSection: Section): Article {
             relativePath,
             'body'
         );
+    }
+
+    // Valid placements
+    const validPlacements = ['lead', 'top', 'standard'];
+    let placement = frontmatter.placement;
+
+    // Backward compatibility: map featured=true to placement=lead
+    if (!placement && (frontmatter as any).featured === true) {
+        placement = 'lead';
+    }
+
+    // Default to 'standard'
+    if (!placement || !validPlacements.includes(placement)) {
+        placement = 'standard';
     }
 
     // Construct validated article
@@ -102,7 +134,7 @@ function readArticleFile(filePath: string, expectedSection: Section): Article {
         contentType: frontmatter.contentType,
         publishedAt: frontmatter.publishedAt,
         updatedAt: frontmatter.updatedAt ?? null,
-        featured: frontmatter.featured ?? false,
+        placement: placement as 'lead' | 'top' | 'standard',
         tags: frontmatter.tags ?? [],
         sources: frontmatter.sources ?? [],
         image: frontmatter.image,
@@ -135,11 +167,17 @@ function readSectionArticles(section: Section): Article[] {
         const filePath = path.join(sectionPath, filename);
 
         // Skip directories (shouldn't happen but safety check)
-        const stat = fs.statSync(filePath);
-        if (!stat.isFile()) continue;
+        try {
+            const stat = fs.statSync(filePath);
+            if (!stat.isFile()) continue;
 
-        const article = readArticleFile(filePath, section);
-        articles.push(article);
+            const article = readArticleFile(filePath, section);
+            articles.push(article);
+        } catch (error) {
+            // Warn but continue for individual file errors
+            console.warn(`Skipping invalid article ${filename}: ${(error as Error).message}`);
+            continue;
+        }
     }
 
     return articles;
@@ -223,11 +261,11 @@ export function getArticlesBySection(section: string): Article[] {
 }
 
 /**
- * Get all featured articles across all sections
- * @returns Array of featured articles, sorted by publishedAt (newest first)
+ * Get all lead (formerly featured) articles across all sections
+ * @returns Array of lead articles, sorted by publishedAt (newest first)
  */
-export function getFeaturedArticles(): Article[] {
-    return getAllArticles().filter(article => article.featured);
+export function getLeadArticles(): Article[] {
+    return getAllArticles().filter(article => article.placement === 'lead');
 }
 
 /**
