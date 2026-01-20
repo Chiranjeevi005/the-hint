@@ -1,25 +1,46 @@
 /**
  * Validation Utilities Index
- * Re-exports all validation utilities
+ * Re-exports all validation utilities for publishing system
  */
 
 export {
+    // Constants
     VALID_CONTENT_TYPES,
     VALID_SECTIONS,
+    VALID_STATUSES,
+    HEADLINE_MIN_LENGTH,
+    HEADLINE_MAX_LENGTH,
+    SUBHEADLINE_MAX_LENGTH,
+    MAX_TAGS,
+    // Utility functions
     sanitizeString,
     sanitizeStringArray,
+    normalizeTags,
     generateSlug,
+    generateDraftId,
+    // Validators
+    isOnlyPunctuation,
+    hasValidParagraph,
     isNonEmptyString,
     isValidContentType,
     isValidSection,
+    isValidStatus,
     isValidFeatured,
+    // Main validation functions
     validateArticleInput,
+    validateDraftInput,
+    // Transformation functions
     transformToValidatedData,
+    transformToDraftData,
 } from './article';
 
 export type {
+    ContentType,
+    ArticleStatus,
     FieldValidationError,
     ValidationResult,
     PublishArticleInput,
+    DraftArticleInput,
     ValidatedArticleData,
+    ValidatedDraftData,
 } from './article';

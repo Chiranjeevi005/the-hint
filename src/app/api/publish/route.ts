@@ -2,8 +2,14 @@
  * Publish API Route
  * POST /api/publish
  * 
- * Handles article publishing with strict validation and file-based storage.
+ * Handles article PUBLISHING with strict validation and file-based storage.
  * This is a critical write path - prioritizes correctness and safety.
+ * 
+ * RULES:
+ * - Publishing must be explicit and irreversible
+ * - All validation happens server-side
+ * - Drafts and published articles are strictly separated
+ * - No silent failures
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -15,6 +21,7 @@ import {
     PublishArticleInput,
     ValidatedArticleData,
 } from '@/lib/validation';
+import { deleteDraft } from '@/lib/publish';
 
 /** Base path for content files */
 const CONTENT_BASE_PATH = path.join(process.cwd(), 'src', 'content');
@@ -25,18 +32,12 @@ const CONTENT_BASE_PATH = path.join(process.cwd(), 'src', 'content');
 function generateFrontmatter(data: ValidatedArticleData): string {
     const lines: string[] = ['---'];
 
-    // Required fields
-    lines.push(`title: ${escapeYamlString(data.title)}`);
-    lines.push(`subtitle: ${escapeYamlString(data.subtitle)}`);
+    // Required fields - map headline/subheadline to title/subtitle for content system
+    lines.push(`title: ${escapeYamlString(data.headline)}`);
+    lines.push(`subtitle: ${escapeYamlString(data.subheadline)}`);
     lines.push(`contentType: ${data.contentType}`);
-    lines.push(`status: ${data.status}`);
-
-    if (data.status === 'published') {
-        lines.push(`publishedAt: ${new Date().toISOString()}`);
-    } else {
-        lines.push(`publishedAt: null`);
-    }
-
+    lines.push(`status: published`);  // Always published when going through this route
+    lines.push(`publishedAt: ${new Date().toISOString()}`);
     lines.push(`updatedAt: null`);
     lines.push(`featured: ${data.featured}`);
 
@@ -72,7 +73,7 @@ function escapeYamlString(value: string): string {
     // If the string contains special characters, wrap in quotes
     if (/[:#\[\]{}|>!&*?'"\n\r]/.test(value) || value.startsWith(' ') || value.endsWith(' ')) {
         // Escape any existing double quotes and wrap in double quotes
-        return `"${value.replace(/"/g, '\\"')}"`;
+        return `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
     }
     return value;
 }
@@ -132,10 +133,19 @@ function writeArticleFile(section: string, slug: string, content: string): void 
 }
 
 /**
- * Handle POST requests to publish articles
+ * Handle POST requests to PUBLISH articles
+ * This is the FINAL, IRREVERSIBLE publish action
  */
 export async function POST(request: NextRequest): Promise<NextResponse> {
     try {
+        // TODO: Add authentication check here
+        // if (!isAuthenticated(request)) {
+        //     return NextResponse.json(
+        //         { success: false, error: 'Unauthorized', errors: [{ field: 'auth', message: 'Authentication required' }] },
+        //         { status: 401 }
+        //     );
+        // }
+
         // Parse request body
         let body: unknown;
         try {
@@ -165,7 +175,19 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
         const input = body as PublishArticleInput;
 
-        // Validate all inputs
+        // Ensure status is 'published' for this endpoint
+        if (input.status !== 'published') {
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: 'This endpoint is for publishing only. Use /api/publish/draft to save drafts.',
+                    errors: [{ field: 'status', message: 'Status must be "published" to publish an article' }]
+                },
+                { status: 400 }
+            );
+        }
+
+        // Validate all inputs with FULL validation
         const validationResult = validateArticleInput(input);
 
         if (!validationResult.isValid) {
@@ -187,22 +209,22 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             return NextResponse.json(
                 {
                     success: false,
-                    error: 'Could not generate a valid slug from the title',
-                    errors: [{ field: 'title', message: 'Title must contain at least one alphanumeric character' }],
+                    error: 'Could not generate a valid slug from the headline',
+                    errors: [{ field: 'headline', message: 'Headline must contain at least one alphanumeric character' }],
                 },
                 { status: 400 }
             );
         }
 
-        // Check if slug already exists
+        // Check if slug already exists - REJECT with 409 Conflict
         if (slugExists(articleData.section, articleData.slug)) {
             return NextResponse.json(
                 {
                     success: false,
-                    error: 'An article with this slug already exists',
+                    error: 'An article with this title already exists in this section',
                     errors: [{
-                        field: 'title',
-                        message: `An article with the slug "${articleData.slug}" already exists in the ${articleData.section} section`
+                        field: 'headline',
+                        message: `An article with this title already exists in the ${articleData.section} section`
                     }],
                 },
                 { status: 409 }
@@ -242,6 +264,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             );
         }
 
+        // If there was a draft ID, remove the draft
+        const draftId = (body as Record<string, unknown>).draftId;
+        if (typeof draftId === 'string' && draftId) {
+            deleteDraft(draftId);
+        }
+
         // Success response
         return NextResponse.json(
             {
@@ -251,6 +279,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
                     slug: articleData.slug,
                     section: articleData.section,
                     url: `/${articleData.section}/${articleData.slug}`,
+                    publishedAt: new Date().toISOString(),
                 },
             },
             { status: 201 }

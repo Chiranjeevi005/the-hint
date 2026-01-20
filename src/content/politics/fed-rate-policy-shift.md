@@ -1,7 +1,7 @@
 ---
 title: Federal Reserve Signals Potential Rate Cuts
 subtitle: Central bank hints at policy shift amid cooling inflation data
-contentType: analysis
+contentType: news
 publishedAt: 2026-01-14T14:30:00Z
 updatedAt: 2026-01-15T08:00:00Z
 featured: false

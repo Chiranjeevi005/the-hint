@@ -3,8 +3,8 @@
  * Strict type definitions for news publication content
  */
 
-/** Valid content types for articles */
-export type ContentType = 'news' | 'analysis' | 'opinion';
+/** Valid content types for articles: news or opinion only */
+export type ContentType = 'news' | 'opinion';
 
 /** Valid sections that match folder names under /src/content/ */
 export type Section =
@@ -37,7 +37,7 @@ export interface Article {
     /** Secondary headline / deck */
     subtitle: string;
 
-    /** Type of content: news, analysis, or opinion */
+    /** Type of content: news or opinion */
     contentType: ContentType;
 
     /** ISO 8601 publication timestamp */

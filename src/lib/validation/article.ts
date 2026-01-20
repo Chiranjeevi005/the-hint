@@ -1,12 +1,16 @@
 /**
  * Article Validation Utilities
  * Server-side validation for publishing articles
+ * 
+ * CRITICAL: All validation happens server-side.
+ * Client validation is ONLY for UX assistance.
  */
 
-import { ContentType, Section } from '../content/types';
+import { Section } from '../content/types';
 
-/** Valid content types */
-export const VALID_CONTENT_TYPES: ContentType[] = ['news', 'analysis', 'opinion'];
+/** Valid content types - ONLY news or opinion */
+export type ContentType = 'news' | 'opinion';
+export const VALID_CONTENT_TYPES: ContentType[] = ['news', 'opinion'];
 
 /** Valid sections */
 export const VALID_SECTIONS: Section[] = [
@@ -21,6 +25,12 @@ export const VALID_SECTIONS: Section[] = [
 export type ArticleStatus = 'draft' | 'published';
 export const VALID_STATUSES: ArticleStatus[] = ['draft', 'published'];
 
+/** Validation constants */
+export const HEADLINE_MIN_LENGTH = 10;
+export const HEADLINE_MAX_LENGTH = 150;
+export const SUBHEADLINE_MAX_LENGTH = 200;
+export const MAX_TAGS = 10;
+
 /** Validation result for a single field */
 export interface FieldValidationError {
     field: string;
@@ -34,7 +44,8 @@ export interface ValidationResult {
 }
 
 /**
- * Sanitize a string input by trimming and removing dangerous characters
+ * Sanitize a string input by trimming and removing dangerous characters.
+ * Preserves text exactly (no mutation beyond whitespace normalization).
  */
 export function sanitizeString(input: unknown): string {
     if (typeof input !== 'string') {
@@ -45,7 +56,8 @@ export function sanitizeString(input: unknown): string {
 }
 
 /**
- * Sanitize an array of strings
+ * Sanitize an array of strings.
+ * Each entry must be non-empty.
  */
 export function sanitizeStringArray(input: unknown): string[] {
     if (!Array.isArray(input)) {
@@ -58,10 +70,24 @@ export function sanitizeStringArray(input: unknown): string[] {
 }
 
 /**
- * Generate a URL-safe slug from a title
+ * Normalize tags: lowercase, trim, deduplicate, max 10
  */
-export function generateSlug(title: string): string {
-    return title
+export function normalizeTags(input: unknown): string[] {
+    const sanitized = sanitizeStringArray(input);
+    const lowercased = sanitized.map(tag => tag.toLowerCase());
+    const deduplicated = [...new Set(lowercased)];
+    return deduplicated.slice(0, MAX_TAGS);
+}
+
+/**
+ * Generate a URL-safe slug from a headline.
+ * - Lowercase
+ * - Hyphen-separated
+ * - Remove punctuation
+ * - Deterministic
+ */
+export function generateSlug(headline: string): string {
+    return headline
         .toLowerCase()
         .trim()
         // Replace spaces and underscores with hyphens
@@ -72,6 +98,28 @@ export function generateSlug(title: string): string {
         .replace(/-+/g, '-')
         // Remove leading/trailing hyphens
         .replace(/^-+|-+$/g, '');
+}
+
+/**
+ * Check if string is only punctuation (no alphanumeric)
+ */
+export function isOnlyPunctuation(value: string): boolean {
+    // Remove all whitespace and check if remaining is only punctuation
+    const stripped = value.replace(/\s/g, '');
+    if (stripped.length === 0) return true;
+    // Check if there's at least one alphanumeric character
+    return !/[a-zA-Z0-9]/.test(stripped);
+}
+
+/**
+ * Check if body content has at least one paragraph (non-empty content)
+ */
+export function hasValidParagraph(body: string): boolean {
+    const trimmed = body.trim();
+    if (!trimmed) return false;
+    // Check for at least one line with actual content (not just whitespace)
+    const lines = trimmed.split('\n');
+    return lines.some(line => line.trim().length > 0);
 }
 
 /**
@@ -111,10 +159,11 @@ export function isValidFeatured(value: unknown): boolean {
 
 /**
  * Article publish data interface (raw input from form)
+ * Uses headline/subheadline as per spec
  */
 export interface PublishArticleInput {
-    title: unknown;
-    subtitle: unknown;
+    headline: unknown;
+    subheadline: unknown;
     section: unknown;
     contentType: unknown;
     body: unknown;
@@ -125,11 +174,26 @@ export interface PublishArticleInput {
 }
 
 /**
+ * Draft-specific input (less strict validation)
+ */
+export interface DraftArticleInput {
+    headline: unknown;
+    subheadline?: unknown;
+    section?: unknown;
+    contentType?: unknown;
+    body: unknown;
+    tags?: unknown;
+    featured?: unknown;
+    sources?: unknown;
+    draftId?: unknown;
+}
+
+/**
  * Validated article data ready for publishing
  */
 export interface ValidatedArticleData {
-    title: string;
-    subtitle: string;
+    headline: string;
+    subheadline: string;
     section: Section;
     contentType: ContentType;
     body: string;
@@ -141,26 +205,76 @@ export interface ValidatedArticleData {
 }
 
 /**
- * Validate all article fields for publishing
+ * Validated draft data
+ */
+export interface ValidatedDraftData {
+    draftId: string;
+    headline: string;
+    subheadline: string;
+    section: Section;
+    contentType: ContentType;
+    body: string;
+    tags: string[];
+    featured: boolean;
+    sources: string[];
+    savedAt: string;
+}
+
+/**
+ * Validate all article fields for PUBLISHING.
+ * This is the strictest validation - all fields must pass.
  */
 export function validateArticleInput(input: PublishArticleInput): ValidationResult {
     const errors: FieldValidationError[] = [];
+    const headline = sanitizeString(input.headline);
+    const subheadline = sanitizeString(input.subheadline);
+    const body = sanitizeString(input.body);
 
-    // Validate title
-    if (!isNonEmptyString(input.title)) {
-        errors.push({ field: 'title', message: 'Title is required and must be a non-empty string' });
-    } else if (input.title.length > 200) {
-        errors.push({ field: 'title', message: 'Title must be 200 characters or less' });
+    // HEADLINE validation
+    if (!headline) {
+        errors.push({ field: 'headline', message: 'Headline is required' });
+    } else {
+        if (headline.length < HEADLINE_MIN_LENGTH) {
+            errors.push({
+                field: 'headline',
+                message: `Headline must be at least ${HEADLINE_MIN_LENGTH} characters`
+            });
+        }
+        if (headline.length > HEADLINE_MAX_LENGTH) {
+            errors.push({
+                field: 'headline',
+                message: `Headline must be ${HEADLINE_MAX_LENGTH} characters or less`
+            });
+        }
+        if (isOnlyPunctuation(headline)) {
+            errors.push({
+                field: 'headline',
+                message: 'Headline must contain at least one alphanumeric character'
+            });
+        }
     }
 
-    // Validate subtitle
-    if (!isNonEmptyString(input.subtitle)) {
-        errors.push({ field: 'subtitle', message: 'Subtitle is required and must be a non-empty string' });
-    } else if (input.subtitle.length > 500) {
-        errors.push({ field: 'subtitle', message: 'Subtitle must be 500 characters or less' });
+    // SUBHEADLINE validation (required)
+    if (!subheadline) {
+        errors.push({ field: 'subheadline', message: 'Subheadline is required' });
+    } else if (subheadline.length > SUBHEADLINE_MAX_LENGTH) {
+        errors.push({
+            field: 'subheadline',
+            message: `Subheadline must be ${SUBHEADLINE_MAX_LENGTH} characters or less`
+        });
     }
 
-    // Validate section
+    // BODY validation
+    if (!body) {
+        errors.push({ field: 'body', message: 'Article body is required' });
+    } else if (!hasValidParagraph(body)) {
+        errors.push({
+            field: 'body',
+            message: 'Article body must contain at least one paragraph of content'
+        });
+    }
+
+    // SECTION validation
     if (!isValidSection(input.section)) {
         errors.push({
             field: 'section',
@@ -168,7 +282,7 @@ export function validateArticleInput(input: PublishArticleInput): ValidationResu
         });
     }
 
-    // Validate contentType
+    // CONTENT TYPE validation
     if (!isValidContentType(input.contentType)) {
         errors.push({
             field: 'contentType',
@@ -176,39 +290,38 @@ export function validateArticleInput(input: PublishArticleInput): ValidationResu
         });
     }
 
-    // Validate status
-    if (input.status !== undefined && input.status !== null) {
-        if (!isValidStatus(input.status)) {
-            errors.push({
-                field: 'status',
-                message: `Status must be one of: ${VALID_STATUSES.join(', ')}`
-            });
-        }
-    }
-
-    // Validate opinion rule: opinion contentType can only be in opinion section
+    // CRITICAL RULE: Opinion contentType MUST be in opinion section
     if (input.contentType === 'opinion' && input.section !== 'opinion') {
         errors.push({
             field: 'contentType',
-            message: 'Opinion articles can only be published in the Opinion section'
+            message: 'Opinion articles MUST be published in the Opinion section'
         });
     }
 
-    // Validate body
-    if (!isNonEmptyString(input.body)) {
-        errors.push({ field: 'body', message: 'Body content is required and cannot be empty' });
+    // STATUS validation
+    if (!isValidStatus(input.status)) {
+        errors.push({
+            field: 'status',
+            message: `Status must be one of: ${VALID_STATUSES.join(', ')}`
+        });
     }
 
-    // Validate featured (must be boolean)
+    // FEATURED validation
     if (typeof input.featured !== 'boolean') {
         errors.push({ field: 'featured', message: 'Featured must be a boolean value' });
     }
 
-    // Tags and sources are optional but must be arrays if provided
+    // TAGS validation (optional but check format)
     if (input.tags !== undefined && input.tags !== null && !Array.isArray(input.tags)) {
         errors.push({ field: 'tags', message: 'Tags must be an array of strings' });
+    } else if (Array.isArray(input.tags)) {
+        const validTags = sanitizeStringArray(input.tags);
+        if (validTags.length > MAX_TAGS) {
+            errors.push({ field: 'tags', message: `Maximum ${MAX_TAGS} tags allowed` });
+        }
     }
 
+    // SOURCES validation (optional but each entry must be non-empty)
     if (input.sources !== undefined && input.sources !== null && !Array.isArray(input.sources)) {
         errors.push({ field: 'sources', message: 'Sources must be an array of strings' });
     }
@@ -220,23 +333,68 @@ export function validateArticleInput(input: PublishArticleInput): ValidationResu
 }
 
 /**
- * Transform and sanitize validated input into clean article data
+ * Validate fields for DRAFT saving.
+ * More lenient - only requires headline and body.
+ */
+export function validateDraftInput(input: DraftArticleInput): ValidationResult {
+    const errors: FieldValidationError[] = [];
+    const headline = sanitizeString(input.headline);
+    const body = sanitizeString(input.body);
+
+    // HEADLINE - required for draft
+    if (!headline) {
+        errors.push({ field: 'headline', message: 'Headline is required to save a draft' });
+    }
+
+    // BODY - required for draft
+    if (!body) {
+        errors.push({ field: 'body', message: 'Article body is required to save a draft' });
+    }
+
+    // If section provided, validate it
+    if (input.section !== undefined && input.section !== null && input.section !== '') {
+        if (!isValidSection(input.section)) {
+            errors.push({
+                field: 'section',
+                message: `Section must be one of: ${VALID_SECTIONS.join(', ')}`
+            });
+        }
+    }
+
+    // If contentType provided, validate it
+    if (input.contentType !== undefined && input.contentType !== null && input.contentType !== '') {
+        if (!isValidContentType(input.contentType)) {
+            errors.push({
+                field: 'contentType',
+                message: `Content type must be one of: ${VALID_CONTENT_TYPES.join(', ')}`
+            });
+        }
+    }
+
+    return {
+        isValid: errors.length === 0,
+        errors,
+    };
+}
+
+/**
+ * Transform and sanitize validated input into clean article data for PUBLISHING.
  */
 export function transformToValidatedData(input: PublishArticleInput): ValidatedArticleData {
-    const title = sanitizeString(input.title);
-    const subtitle = sanitizeString(input.subtitle);
+    const headline = sanitizeString(input.headline);
+    const subheadline = sanitizeString(input.subheadline);
     const body = sanitizeString(input.body);
     const section = input.section as Section;
     const contentType = input.contentType as ContentType;
     const featured = input.featured === true;
-    const status = (input.status === 'published' ? 'published' : 'draft') as ArticleStatus;
-    const tags = sanitizeStringArray(input.tags);
+    const status = input.status as ArticleStatus;
+    const tags = normalizeTags(input.tags);
     const sources = sanitizeStringArray(input.sources);
-    const slug = generateSlug(title);
+    const slug = generateSlug(headline);
 
     return {
-        title,
-        subtitle,
+        headline,
+        subheadline,
         section,
         contentType,
         body,
@@ -246,4 +404,40 @@ export function transformToValidatedData(input: PublishArticleInput): ValidatedA
         sources,
         slug,
     };
+}
+
+/**
+ * Transform draft input into validated draft data.
+ */
+export function transformToDraftData(input: DraftArticleInput, draftId?: string): ValidatedDraftData {
+    const headline = sanitizeString(input.headline);
+    const subheadline = sanitizeString(input.subheadline);
+    const body = sanitizeString(input.body);
+    const section = isValidSection(input.section) ? input.section : 'politics';
+    const contentType = isValidContentType(input.contentType) ? input.contentType : 'news';
+    const featured = input.featured === true;
+    const tags = normalizeTags(input.tags);
+    const sources = sanitizeStringArray(input.sources);
+
+    return {
+        draftId: draftId || generateDraftId(),
+        headline,
+        subheadline,
+        section,
+        contentType,
+        body,
+        tags,
+        featured,
+        sources,
+        savedAt: new Date().toISOString(),
+    };
+}
+
+/**
+ * Generate a unique draft ID
+ */
+export function generateDraftId(): string {
+    const timestamp = Date.now().toString(36);
+    const random = Math.random().toString(36).substring(2, 8);
+    return `draft-${timestamp}-${random}`;
 }
