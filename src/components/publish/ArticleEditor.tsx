@@ -7,7 +7,7 @@
  * Writing Surface:
  * - Headline (required)
  * - Subheadline (required)
- * - Body editor (long-form)
+ * - Body editor (long-form with block-based media support)
  * 
  * Sidebar:
  * - Section (required)
@@ -18,7 +18,7 @@
  * - Status indicator
  */
 
-import { ChangeEvent, useCallback } from 'react';
+import { ChangeEvent, useCallback, useState, useEffect, useRef } from 'react';
 import {
     ArticleFormData,
     FieldErrors,
@@ -26,7 +26,9 @@ import {
     SECTIONS,
     CONTENT_TYPES,
 } from './types';
+import { BlockEditor } from './BlockEditor';
 import styles from './ArticleEditor.module.css';
+
 
 interface ArticleEditorProps {
     /** Form data */
@@ -55,14 +57,38 @@ export function ArticleEditor({
     onClosePreview,
 }: ArticleEditorProps) {
     /**
+     * Editor mode: 'blocks' for visual block editor, 'markdown' for raw textarea
+     */
+    const [editorMode, setEditorMode] = useState<'blocks' | 'markdown'>('blocks');
+
+    /**
+     * Handle input changes
+     */
+    // Ref to stabilize callbacks
+    const formDataRef = useRef(formData);
+    useEffect(() => {
+        formDataRef.current = formData;
+    }, [formData]);
+
+    /**
      * Handle input changes
      */
     const handleInputChange = useCallback(
         (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
             const { name, value } = e.target;
-            onFormChange({ ...formData, [name]: value });
+            onFormChange({ ...formDataRef.current, [name]: value });
         },
-        [formData, onFormChange]
+        [onFormChange]
+    );
+
+    /**
+     * Handle body change from BlockEditor
+     */
+    const handleBodyChange = useCallback(
+        (newBody: string) => {
+            onFormChange({ ...formDataRef.current, body: newBody });
+        },
+        [onFormChange]
     );
 
     /**
@@ -134,20 +160,60 @@ export function ArticleEditor({
 
                 {/* Body Editor */}
                 <div className={styles.fieldWrapper}>
-                    <textarea
-                        name="body"
-                        className={`${styles.bodyEditor} ${fieldErrors.body ? styles.inputError : ''}`}
-                        placeholder="Start writing article text here...
+                    {/* Editor Mode Toggle */}
+                    <div className={styles.editorModeToggle}>
+                        <button
+                            type="button"
+                            className={`${styles.modeButton} ${editorMode === 'blocks' ? styles.modeActive : ''}`}
+                            onClick={() => setEditorMode('blocks')}
+                        >
+                            Visual Editor
+                        </button>
+                        <button
+                            type="button"
+                            className={`${styles.modeButton} ${editorMode === 'markdown' ? styles.modeActive : ''}`}
+                            onClick={() => setEditorMode('markdown')}
+                        >
+                            Markdown
+                        </button>
+                    </div>
 
-Supports:
-• Paragraphs (separate with blank lines)
-• Inline quotes (use quotation marks)
-• Rich formatting through markdown"
-                        value={formData.body}
-                        onChange={handleInputChange}
-                    />
-                    {fieldErrors.body && (
-                        <span className={styles.fieldError}>{fieldErrors.body}</span>
+                    {/* Block-based Editor */}
+                    {editorMode === 'blocks' && (
+                        <BlockEditor
+                            value={formData.body}
+                            onChange={handleBodyChange}
+                            error={fieldErrors.body}
+                            placeholder="Start writing your article..."
+                        />
+                    )}
+
+                    {/* Markdown Textarea (fallback) */}
+                    {editorMode === 'markdown' && (
+                        <>
+                            <textarea
+                                name="body"
+                                className={`${styles.bodyEditor} ${fieldErrors.body ? styles.inputError : ''}`}
+                                placeholder="Write in markdown format...
+
+:::image
+src: /media/images/photo.webp
+alt: Description text
+width: 1200
+height: 800
+:::
+
+:::video
+provider: youtube
+videoId: dQw4w9WgXcQ
+:::"
+                                value={formData.body}
+                                onChange={handleInputChange}
+                            />
+                            {fieldErrors.body && (
+                                <span className={styles.fieldError}>{fieldErrors.body}</span>
+                            )}
+                        </>
                     )}
                 </div>
             </div>

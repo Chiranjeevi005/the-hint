@@ -1,0 +1,735 @@
+/**
+ * Block Editor Component
+ * Block-based writing surface for articles with media support
+ * 
+ * DESIGN SPEC: .agent/specifications/MEDIA_SYSTEM_DESIGN.md
+ * 
+ * Features:
+ * - Visual block-based editing
+ * - Insert menu for adding media blocks
+ * - Media counter showing limits
+ * - Bidirectional sync with markdown body
+ */
+
+'use client';
+
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import { parseBodyToBlocks, serializeBlocksToMarkdown } from '@/lib/content/block-parser';
+import {
+    ContentBlock,
+    ContentBlockType,
+    ImageBlock,
+    VideoBlock,
+    calculateMediaSummary,
+    createParagraphBlock,
+    createSubheadingBlock,
+    createQuoteBlock,
+    createImageBlock,
+    createVideoBlock,
+    reorderBlocks,
+    isImageBlock,
+    isVideoBlock,
+    isMediaBlock,
+    MEDIA_LIMITS,
+} from '@/lib/content/media-types';
+import { canInsertMediaAt, isValidBlockOrder } from '@/lib/validation/media';
+import { MediaCounter } from './MediaCounter';
+import { ImageBlockEditor } from './ImageBlockEditor';
+import { VideoBlockEditor } from './VideoBlockEditor';
+import type { ImageAspectRatio, VideoProvider } from '@/lib/content/media-types';
+import styles from './BlockEditor.module.css';
+
+// =============================================================================
+// PROPS
+// =============================================================================
+
+interface BlockEditorProps {
+    /** Current body content (markdown string) */
+    value: string;
+    /** Handler for body changes */
+    onChange: (value: string) => void;
+    /** Field error message */
+    error?: string;
+    /** Placeholder text */
+    placeholder?: string;
+}
+
+// =============================================================================
+// COMPONENT
+// =============================================================================
+
+export function BlockEditor({
+    value,
+    onChange,
+    error,
+    placeholder = 'Start writing your article...',
+}: BlockEditorProps) {
+    // Parse blocks from markdown
+    const [blocks, setBlocks] = useState<ContentBlock[]>(() => {
+        const result = parseBodyToBlocks(value);
+        return result.blocks;
+    });
+
+    // UI State
+    const [focusedBlockId, setFocusedBlockId] = useState<string | null>(null);
+    const [showInsertMenu, setShowInsertMenu] = useState(false);
+    const [insertPosition, setInsertPosition] = useState<number>(0);
+    const [showImageEditor, setShowImageEditor] = useState(false);
+    const [showVideoEditor, setShowVideoEditor] = useState(false);
+    const [editingBlock, setEditingBlock] = useState<ContentBlock | null>(null);
+
+    // Refs for managing focus
+    const blockRefs = useRef<Map<string, HTMLTextAreaElement | HTMLDivElement>>(new Map());
+
+    // Calculate media summary
+    const mediaSummary = useMemo(() => calculateMediaSummary(blocks), [blocks]);
+
+    // Sync blocks to markdown when they change
+    useEffect(() => {
+        const markdown = serializeBlocksToMarkdown(blocks);
+        if (markdown !== value) {
+            onChange(markdown);
+        }
+    }, [blocks, onChange]);
+
+    // Re-parse when external value changes significantly
+    useEffect(() => {
+        const currentMarkdown = serializeBlocksToMarkdown(blocks);
+        if (value !== currentMarkdown) {
+            const result = parseBodyToBlocks(value);
+            if (result.success) {
+                setBlocks(result.blocks);
+            }
+        }
+    }, [value]);
+
+    // ==========================================================================
+    // BLOCK OPERATIONS
+    // ==========================================================================
+
+    /**
+     * Update a block's content
+     */
+    const updateBlockContent = useCallback((blockId: string, content: string) => {
+        setBlocks(prev => prev.map(block => {
+            if (block.id === blockId && 'content' in block) {
+                return { ...block, content };
+            }
+            return block;
+        }));
+    }, []);
+
+    /**
+     * Insert a new block at position
+     */
+    const insertBlock = useCallback((type: ContentBlockType, position: number) => {
+        setBlocks(prev => {
+            let newBlock: ContentBlock;
+
+            switch (type) {
+                case 'paragraph':
+                    newBlock = createParagraphBlock('', position);
+                    break;
+                case 'subheading':
+                    newBlock = createSubheadingBlock('', position);
+                    break;
+                case 'quote':
+                    newBlock = createQuoteBlock('', position);
+                    break;
+                default:
+                    return prev;
+            }
+
+            const updated = [...prev];
+            updated.splice(position, 0, newBlock);
+            return reorderBlocks(updated);
+        });
+        setShowInsertMenu(false);
+    }, []);
+
+    /**
+     * Delete a block
+     */
+    const deleteBlock = useCallback((blockId: string) => {
+        setBlocks(prev => {
+            const filtered = prev.filter(b => b.id !== blockId);
+            return reorderBlocks(filtered);
+        });
+    }, []);
+
+    /**
+     * Move a block up or down
+     */
+    const moveBlock = useCallback((blockId: string, direction: 'up' | 'down') => {
+        setBlocks(prev => {
+            const index = prev.findIndex(b => b.id === blockId);
+            if (index === -1) return prev;
+            if (direction === 'up' && index === 0) return prev;
+            if (direction === 'down' && index === prev.length - 1) return prev;
+
+            const newBlocks = [...prev];
+            const targetIndex = direction === 'up' ? index - 1 : index + 1;
+
+            // Swap
+            [newBlocks[index], newBlocks[targetIndex]] = [newBlocks[targetIndex], newBlocks[index]];
+
+            // Reorder checks - enforce validity
+            const validation = isValidBlockOrder(newBlocks);
+            if (!validation.isValid) {
+                // In a real app we'd toast here, but for now strict refusal
+                // We could also allow it and show error state, but the prompt asked for "guardrails"
+                return prev;
+            }
+
+            return reorderBlocks(newBlocks);
+        });
+    }, []);
+
+    /**
+     * Handle keyboard shortcuts in blocks
+     */
+    const handleBlockKeyDown = useCallback((
+        e: React.KeyboardEvent,
+        block: ContentBlock,
+        index: number
+    ) => {
+        // Enter at end of block = new paragraph
+        if (e.key === 'Enter' && !e.shiftKey) {
+            const target = e.target as HTMLTextAreaElement;
+            const content = 'content' in block ? block.content : '';
+
+            // If at end of content, create new block
+            if (target.selectionStart === content.length) {
+                e.preventDefault();
+                const newBlock = createParagraphBlock('', index + 1);
+                setBlocks(prev => {
+                    const updated = [...prev];
+                    updated.splice(index + 1, 0, newBlock);
+                    return reorderBlocks(updated);
+                });
+                // Focus the new block
+                setTimeout(() => {
+                    setFocusedBlockId(newBlock.id);
+                }, 10);
+            }
+        }
+
+        // Backspace at start of empty block = delete block
+        if (e.key === 'Backspace') {
+            const target = e.target as HTMLTextAreaElement;
+            const content = 'content' in block ? block.content : '';
+
+            if (target.selectionStart === 0 && content === '' && blocks.length > 1) {
+                e.preventDefault();
+                deleteBlock(block.id);
+                // Focus previous block
+                if (index > 0) {
+                    setFocusedBlockId(blocks[index - 1].id);
+                }
+            }
+        }
+    }, [blocks, deleteBlock]);
+
+    // ==========================================================================
+    // INSERT MENU
+    // ==========================================================================
+
+    /**
+     * Show insert menu at position
+     */
+    const openInsertMenu = useCallback((position: number) => {
+        setInsertPosition(position);
+        setShowInsertMenu(true);
+    }, []);
+
+    /**
+     * Get available insert options
+     */
+    const getInsertOptions = useCallback(() => {
+        const imageCount = mediaSummary.imageCount;
+        const videoCount = mediaSummary.videoCount;
+
+        // Check if media can be inserted at this position
+        const canInsertImage = canInsertMediaAt(blocks, insertPosition, 'image');
+        const canInsertVideo = canInsertMediaAt(blocks, insertPosition, 'video');
+
+        return [
+            { type: 'paragraph' as ContentBlockType, label: 'Paragraph', icon: '¶', disabled: false },
+            { type: 'subheading' as ContentBlockType, label: 'Subheading', icon: 'H', disabled: false },
+            { type: 'quote' as ContentBlockType, label: 'Quote', icon: '❝', disabled: false },
+            {
+                type: 'image' as ContentBlockType,
+                label: `Image (${imageCount}/${MEDIA_LIMITS.MAX_IMAGES})`,
+                icon: '🖼',
+                disabled: !canInsertImage.valid || imageCount >= MEDIA_LIMITS.MAX_IMAGES,
+                reason: !canInsertImage.valid ? canInsertImage.reason : undefined,
+            },
+            {
+                type: 'video' as ContentBlockType,
+                label: `Video (${videoCount}/${MEDIA_LIMITS.MAX_VIDEOS})`,
+                icon: '🎬',
+                disabled: !canInsertVideo.valid,
+                reason: !canInsertVideo.valid ? canInsertVideo.reason : undefined,
+            },
+        ];
+    }, [blocks, insertPosition, mediaSummary]);
+
+    /**
+     * Handle insert option selection
+     */
+    const handleInsertSelect = useCallback((type: ContentBlockType) => {
+        if (type === 'image') {
+            setShowInsertMenu(false);
+            setEditingBlock(null);
+            setShowImageEditor(true);
+        } else if (type === 'video') {
+            setShowInsertMenu(false);
+            setEditingBlock(null);
+            setShowVideoEditor(true);
+        } else {
+            insertBlock(type, insertPosition);
+        }
+    }, [insertBlock, insertPosition]);
+
+    // ==========================================================================
+    // MEDIA BLOCK HANDLERS
+    // ==========================================================================
+
+    /**
+     * Handle image save from editor
+     */
+    const handleImageSave = useCallback((data: {
+        src: string;
+        alt: string;
+        caption?: string;
+        credit?: string;
+        width: number;
+        height: number;
+        aspectRatio: ImageAspectRatio;
+        srcset?: string;
+    }) => {
+        if (editingBlock && isImageBlock(editingBlock)) {
+            // Update existing block
+            setBlocks(prev => prev.map(b => {
+                if (b.id === editingBlock.id) {
+                    return { ...b, ...data };
+                }
+                return b;
+            }));
+        } else {
+            // Create new image block
+            const newBlock = createImageBlock(insertPosition, data);
+            setBlocks(prev => {
+                const updated = [...prev];
+                updated.splice(insertPosition, 0, newBlock);
+                return reorderBlocks(updated);
+            });
+        }
+        setShowImageEditor(false);
+        setEditingBlock(null);
+    }, [editingBlock, insertPosition]);
+
+    /**
+     * Handle video save from editor
+     */
+    const handleVideoSave = useCallback((data: {
+        provider: VideoProvider;
+        videoId: string;
+        embedUrl: string;
+        posterUrl: string;
+        caption?: string;
+        title?: string;
+        duration?: number;
+    }) => {
+        if (editingBlock && isVideoBlock(editingBlock)) {
+            // Update existing block
+            setBlocks(prev => prev.map(b => {
+                if (b.id === editingBlock.id) {
+                    return { ...b, ...data };
+                }
+                return b;
+            }));
+        } else {
+            // Create new video block
+            const newBlock = createVideoBlock(insertPosition, data);
+            setBlocks(prev => {
+                const updated = [...prev];
+                updated.splice(insertPosition, 0, newBlock);
+                return reorderBlocks(updated);
+            });
+        }
+        setShowVideoEditor(false);
+        setEditingBlock(null);
+    }, [editingBlock, insertPosition]);
+
+    /**
+     * Edit an existing media block
+     */
+    const handleEditMediaBlock = useCallback((block: ContentBlock) => {
+        setEditingBlock(block);
+        if (isImageBlock(block)) {
+            setShowImageEditor(true);
+        } else if (isVideoBlock(block)) {
+            setShowVideoEditor(true);
+        }
+    }, []);
+
+    // ==========================================================================
+    // RENDER BLOCKS
+    // ==========================================================================
+
+    /**
+     * Render a text block (paragraph, subheading, quote)
+     */
+    const renderTextBlock = (block: ContentBlock, index: number) => {
+        const content = 'content' in block ? block.content : '';
+        const isFocused = focusedBlockId === block.id;
+
+        let blockClass = styles.textBlock;
+        let placeholderText = 'Type here...';
+
+        switch (block.type) {
+            case 'paragraph':
+                blockClass = styles.paragraphBlock;
+                placeholderText = index === 0 ? placeholder : 'Continue writing...';
+                break;
+            case 'subheading':
+                blockClass = styles.subheadingBlock;
+                placeholderText = 'Subheading...';
+                break;
+            case 'quote':
+                blockClass = styles.quoteBlock;
+                placeholderText = 'Quote text...';
+                break;
+        }
+
+        return (
+            <div key={block.id} className={styles.blockWrapper}>
+                {/* Insert button above (except first block) */}
+                {index > 0 && (
+                    <button
+                        type="button"
+                        className={styles.insertButton}
+                        onClick={() => openInsertMenu(index)}
+                        title="Insert block"
+                    >
+                        +
+                    </button>
+                )}
+
+                {/* Move Controls */}
+                <div className={styles.moveControls}>
+                    <button
+                        type="button"
+                        className={styles.moveButton}
+                        onClick={() => moveBlock(block.id, 'up')}
+                        disabled={index === 0}
+                        title="Move Up"
+                    >
+                        ▲
+                    </button>
+                    <button
+                        type="button"
+                        className={styles.moveButton}
+                        onClick={() => moveBlock(block.id, 'down')}
+                        disabled={index === blocks.length - 1}
+                        title="Move Down"
+                    >
+                        ▼
+                    </button>
+                </div>
+
+                <textarea
+                    ref={(el) => {
+                        if (el) blockRefs.current.set(block.id, el);
+                    }}
+                    className={`${blockClass} ${isFocused ? styles.focused : ''}`}
+                    value={content}
+                    onChange={(e) => updateBlockContent(block.id, e.target.value)}
+                    onFocus={() => setFocusedBlockId(block.id)}
+                    onBlur={() => setFocusedBlockId(null)}
+                    onKeyDown={(e) => handleBlockKeyDown(e, block, index)}
+                    placeholder={placeholderText}
+                    rows={1}
+                />
+
+                {/* Block type indicator */}
+                <span className={styles.blockTypeLabel}>
+                    {block.type}
+                </span>
+            </div>
+        );
+    };
+
+    /**
+     * Render an image block
+     */
+    const renderImageBlock = (block: ImageBlock, index: number) => {
+        return (
+            <div key={block.id} className={styles.blockWrapper}>
+                {/* Insert button above */}
+                <button
+                    type="button"
+                    className={styles.insertButton}
+                    onClick={() => openInsertMenu(index)}
+                    title="Insert block"
+                >
+                    +
+                </button>
+
+                {/* Move Controls */}
+                <div className={styles.moveControls}>
+                    <button
+                        type="button"
+                        className={styles.moveButton}
+                        onClick={() => moveBlock(block.id, 'up')}
+                        disabled={index === 0}
+                        title="Move Up"
+                    >
+                        ▲
+                    </button>
+                    <button
+                        type="button"
+                        className={styles.moveButton}
+                        onClick={() => moveBlock(block.id, 'down')}
+                        disabled={index === blocks.length - 1}
+                        title="Move Down"
+                    >
+                        ▼
+                    </button>
+                </div>
+
+                <div className={styles.mediaBlock}>
+                    <div className={styles.mediaPreview}>
+                        <img
+                            src={block.src}
+                            alt={block.alt}
+                            className={styles.mediaImage}
+                        />
+                    </div>
+                    <div className={styles.mediaInfo}>
+                        <span className={styles.mediaType}>🖼 Image</span>
+                        {block.caption && (
+                            <span className={styles.mediaCaption}>{block.caption}</span>
+                        )}
+                        <span className={styles.mediaAlt}>Alt: {block.alt}</span>
+                    </div>
+                    <div className={styles.mediaActions}>
+                        <button
+                            type="button"
+                            className={styles.editButton}
+                            onClick={() => handleEditMediaBlock(block)}
+                        >
+                            Edit
+                        </button>
+                        <button
+                            type="button"
+                            className={styles.deleteButton}
+                            onClick={() => deleteBlock(block.id)}
+                        >
+                            Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    /**
+     * Render a video block
+     */
+    const renderVideoBlock = (block: VideoBlock, index: number) => {
+        return (
+            <div key={block.id} className={styles.blockWrapper}>
+                {/* Insert button above */}
+                <button
+                    type="button"
+                    className={styles.insertButton}
+                    onClick={() => openInsertMenu(index)}
+                    title="Insert block"
+                >
+                    +
+                </button>
+
+                {/* Move Controls */}
+                <div className={styles.moveControls}>
+                    <button
+                        type="button"
+                        className={styles.moveButton}
+                        onClick={() => moveBlock(block.id, 'up')}
+                        disabled={index === 0}
+                        title="Move Up"
+                    >
+                        ▲
+                    </button>
+                    <button
+                        type="button"
+                        className={styles.moveButton}
+                        onClick={() => moveBlock(block.id, 'down')}
+                        disabled={index === blocks.length - 1}
+                        title="Move Down"
+                    >
+                        ▼
+                    </button>
+                </div>
+
+                <div className={styles.mediaBlock}>
+                    <div className={styles.mediaPreview}>
+                        {block.posterUrl ? (
+                            <img
+                                src={block.posterUrl}
+                                alt={block.title || 'Video thumbnail'}
+                                className={styles.mediaImage}
+                            />
+                        ) : (
+                            <div className={styles.videoPlaceholder}>🎬</div>
+                        )}
+                        <div className={styles.playOverlay}>▶</div>
+                    </div>
+                    <div className={styles.mediaInfo}>
+                        <span className={styles.mediaType}>
+                            🎬 {block.provider.charAt(0).toUpperCase() + block.provider.slice(1)}
+                        </span>
+                        {block.title && (
+                            <span className={styles.mediaTitle}>{block.title}</span>
+                        )}
+                        {block.caption && (
+                            <span className={styles.mediaCaption}>{block.caption}</span>
+                        )}
+                    </div>
+                    <div className={styles.mediaActions}>
+                        <button
+                            type="button"
+                            className={styles.editButton}
+                            onClick={() => handleEditMediaBlock(block)}
+                        >
+                            Edit
+                        </button>
+                        <button
+                            type="button"
+                            className={styles.deleteButton}
+                            onClick={() => deleteBlock(block.id)}
+                        >
+                            Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    /**
+     * Render a block based on type
+     */
+    const renderBlock = (block: ContentBlock, index: number) => {
+        if (isImageBlock(block)) {
+            return renderImageBlock(block, index);
+        }
+        if (isVideoBlock(block)) {
+            return renderVideoBlock(block, index);
+        }
+        return renderTextBlock(block, index);
+    };
+
+    // ==========================================================================
+    // RENDER
+    // ==========================================================================
+
+    return (
+        <div className={styles.blockEditor}>
+            {/* Header with media counter */}
+            <div className={styles.editorHeader}>
+                <MediaCounter summary={mediaSummary} />
+            </div>
+
+            {/* Blocks */}
+            <div className={styles.blocksContainer}>
+                {blocks.length === 0 ? (
+                    // Empty state - add first paragraph
+                    <div className={styles.emptyState}>
+                        <button
+                            type="button"
+                            className={styles.addFirstBlock}
+                            onClick={() => insertBlock('paragraph', 0)}
+                        >
+                            + Start writing
+                        </button>
+                    </div>
+                ) : (
+                    <>
+                        {blocks.map((block, index) => renderBlock(block, index))}
+
+                        {/* Insert button at end */}
+                        <button
+                            type="button"
+                            className={styles.insertButtonEnd}
+                            onClick={() => openInsertMenu(blocks.length)}
+                            title="Add block"
+                        >
+                            + Add block
+                        </button>
+                    </>
+                )}
+            </div>
+
+            {/* Error display */}
+            {error && (
+                <div className={styles.errorMessage}>{error}</div>
+            )}
+
+            {/* Insert Menu Modal */}
+            {showInsertMenu && (
+                <div className={styles.insertMenuOverlay} onClick={() => setShowInsertMenu(false)}>
+                    <div className={styles.insertMenu} onClick={(e) => e.stopPropagation()}>
+                        <div className={styles.insertMenuHeader}>
+                            Insert Block
+                        </div>
+                        <div className={styles.insertMenuOptions}>
+                            {getInsertOptions().map((option) => (
+                                <button
+                                    key={option.type}
+                                    type="button"
+                                    className={`${styles.insertOption} ${option.disabled ? styles.disabled : ''}`}
+                                    onClick={() => !option.disabled && handleInsertSelect(option.type)}
+                                    disabled={option.disabled}
+                                    title={option.reason}
+                                >
+                                    <span className={styles.insertOptionIcon}>{option.icon}</span>
+                                    <span className={styles.insertOptionLabel}>{option.label}</span>
+                                    {option.reason && (
+                                        <span className={styles.insertOptionReason}>{option.reason}</span>
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Image Editor Modal */}
+            {showImageEditor && (
+                <ImageBlockEditor
+                    block={editingBlock && isImageBlock(editingBlock) ? editingBlock : null}
+                    onSave={handleImageSave}
+                    onCancel={() => {
+                        setShowImageEditor(false);
+                        setEditingBlock(null);
+                    }}
+                />
+            )}
+
+            {/* Video Editor Modal */}
+            {showVideoEditor && (
+                <VideoBlockEditor
+                    block={editingBlock && isVideoBlock(editingBlock) ? editingBlock : null}
+                    currentVideoCount={mediaSummary.videoCount}
+                    onSave={handleVideoSave}
+                    onCancel={() => {
+                        setShowVideoEditor(false);
+                        setEditingBlock(null);
+                    }}
+                />
+            )}
+        </div>
+    );
+}

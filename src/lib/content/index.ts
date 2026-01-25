@@ -32,6 +32,62 @@ export {
 // Parser (for advanced use cases)
 export { parseMarkdown } from './parser';
 
+// Block Parser (for media block system)
+export {
+    parseBodyToBlocks,
+    serializeBlocksToMarkdown,
+    isBlockBasedContent,
+    isLegacyContent,
+} from './block-parser';
+
+export type {
+    BlockParseResult,
+    BlockParseError,
+} from './block-parser';
+
+// Media Types (for block-based content)
+export {
+    TEXT_BLOCK_TYPES,
+    MEDIA_BLOCK_TYPES,
+    MEDIA_LIMITS,
+    ALLOWED_IMAGE_FORMATS,
+    MAX_IMAGE_SIZE_BYTES,
+    ALLOWED_VIDEO_PROVIDERS,
+    isTextBlock,
+    isMediaBlock,
+    isImageBlock,
+    isVideoBlock,
+    generateBlockId,
+    calculateMediaSummary,
+    canAddImage,
+    getRemainingImageSlots,
+    createParagraphBlock,
+    createSubheadingBlock,
+    createQuoteBlock,
+    createImageBlock,
+    createVideoBlock,
+    reorderBlocks,
+} from './media-types';
+
+export type {
+    ContentBlockType,
+    ContentBlock,
+    ParagraphBlock,
+    SubheadingBlock,
+    QuoteBlock,
+    ImageBlock,
+    VideoBlock,
+    TextBlock,
+    MediaBlock,
+    ImageAspectRatio,
+    VideoProvider,
+    AllowedImageFormat,
+    MediaAsset,
+    FeaturedImage,
+    MediaSummary,
+} from './media-types';
+
+
 // Homepage data composition
 export type {
     HomepageData,

@@ -85,6 +85,45 @@
     color: #ccc;
 }
 
+/* Editor Mode Toggle */
+.editorModeToggle {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.modeButton {
+    padding: 0.5rem 1rem;
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    border: 1px solid var(--color-border);
+    border-radius: 20px;
+    background: #fafafa;
+    color: var(--color-muted);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.modeButton:hover {
+    border-color: var(--color-ink-secondary);
+    color: var(--color-ink-secondary);
+}
+
+.modeActive {
+    background: var(--color-ink);
+    border-color: var(--color-ink);
+    color: white;
+}
+
+.modeActive:hover {
+    background: var(--color-ink);
+    border-color: var(--color-ink);
+    color: white;
+}
+
 .inputError {
     border-bottom: 2px solid #c62828 !important;
 }

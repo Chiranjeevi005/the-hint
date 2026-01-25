@@ -8,3 +8,7 @@ export { ArticleMeta } from './ArticleMeta';
 export { ArticleBody } from './ArticleBody';
 export { SourcesList } from './SourcesList';
 export { CorrectionNotice } from './CorrectionNotice';
+
+// Media block renderers
+export { ImageBlockRenderer } from './ImageBlock';
+export { VideoBlockRenderer } from './VideoBlock';

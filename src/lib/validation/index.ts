@@ -46,3 +46,22 @@ export type {
     ValidatedArticleData,
     ValidatedDraftData,
 } from './article';
+
+// Media validation
+export {
+    validateMediaBlocks,
+    validateImageFile,
+    parseVideoUrl,
+    generateEmbedUrl,
+    generatePosterUrl,
+    isValidBlockOrder,
+    canInsertMediaAt,
+} from './media';
+
+export type {
+    MediaValidationErrorType,
+    MediaValidationWarningType,
+    MediaValidationError,
+    MediaValidationWarning,
+    MediaValidationResult,
+} from './media';

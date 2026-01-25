@@ -1,0 +1,91 @@
+/**
+ * Media Counter Styles
+ */
+
+.counter {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    background: #f8f8f8;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    font-size: 0.8125rem;
+    color: #666;
+}
+
+.counterGroup {
+    display: flex;
+    align-items: center;
+}
+
+.counterItem {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 3px;
+    transition: background-color 0.15s ease;
+}
+
+.counterItem:hover {
+    background: rgba(0, 0, 0, 0.04);
+}
+
+.icon {
+    font-size: 0.875rem;
+    line-height: 1;
+}
+
+.count {
+    font-family: ui-monospace, SFMono-Regular, 'SF Mono', Consolas, monospace;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.separator {
+    color: #ccc;
+    font-size: 0.625rem;
+}
+
+/* At hard limit (images) */
+.atLimit {
+    background: #fff3e0;
+    color: #e65100;
+}
+
+.atLimit .count {
+    color: #e65100;
+}
+
+.limitBadge {
+    font-size: 0.625rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 0.125rem 0.25rem;
+    background: #e65100;
+    color: white;
+    border-radius: 2px;
+}
+
+/* At soft limit (videos - warning) */
+.atSoftLimit {
+    background: #fff8e1;
+    color: #f9a825;
+}
+
+.atSoftLimit .count {
+    color: #f9a825;
+}
+
+.warnBadge {
+    font-size: 0.5625rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 0.125rem 0.25rem;
+    background: #f9a825;
+    color: white;
+    border-radius: 2px;
+}

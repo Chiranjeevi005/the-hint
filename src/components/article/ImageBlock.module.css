@@ -1,0 +1,60 @@
+/**
+ * Image Block Styles
+ */
+
+.figure {
+    margin: 2rem 0;
+    max-width: 100%;
+}
+
+.image {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 600px;
+    object-fit: contain;
+    background: #f5f5f5;
+    border-radius: 2px;
+}
+
+.caption {
+    margin-top: 0.75rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid #e0e0e0;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: #666;
+}
+
+.captionText {
+    display: block;
+}
+
+.credit {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.75rem;
+    font-style: italic;
+    color: #888;
+}
+
+.credit::before {
+    content: 'Photo: ';
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .figure {
+        margin-left: -1rem;
+        margin-right: -1rem;
+    }
+
+    .image {
+        border-radius: 0;
+    }
+
+    .caption {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+}
