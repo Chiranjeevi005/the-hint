@@ -1,13 +1,7 @@
-/**
- * Root Layout
- * 
- * The Hint - A Broadsheet Newspaper
- * Uses Playfair Display for headlines and Inter for body text
- */
-
 import type { Metadata } from "next";
 import { Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
+import { getAllArticles } from "@/lib/content/reader";
 
 // Serif font for headlines - authoritative, editorial feel
 const playfairDisplay = Playfair_Display({
@@ -39,19 +33,33 @@ export const metadata: Metadata = {
 };
 
 import { Header, Footer } from "@/components/layout";
+import { SubscribePopup } from "@/components/features/SubscribePopup";
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Fetch articles for global UI elements (Ticker, Updated Indicator)
+  const allArticles = getAllArticles();
+
+  // Latest update timestamp (from any article)
+  const latestUpdate = allArticles.length > 0 ? allArticles[0].publishedAt : undefined;
+
+  // Ticker headlines: No opinion, max 10, latest first
+  const tickerHeadlines = allArticles
+    .filter(a => a.contentType !== 'opinion')
+    .slice(0, 10)
+    .map(a => a.title);
+
   return (
     <html lang="en">
       <body className={`${playfairDisplay.variable} ${inter.variable}`}>
         <div className="min-h-screen flex flex-col">
-          <Header />
+          <Header latestUpdate={latestUpdate} tickerHeadlines={tickerHeadlines} />
           {children}
           <Footer />
+          <SubscribePopup />
         </div>
       </body>
     </html>

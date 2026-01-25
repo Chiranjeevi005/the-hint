@@ -500,6 +500,502 @@ a:focus:not(:focus-visible) {
 }
 
 /* ----------------------------------------------------------------------------
+   ABOUT US PAGE
+   ---------------------------------------------------------------------------- */
+.about-page {
+  padding-top: 3rem;
+  padding-bottom: 4rem;
+}
+
+@media (min-width: 768px) {
+  .about-page {
+    padding-top: 4rem;
+    padding-bottom: 5rem;
+  }
+}
+
+.about-page .container-editorial {
+  max-width: 720px;
+}
+
+.about-header {
+  margin-bottom: 3rem;
+}
+
+.about-title {
+  font-family: var(--font-serif);
+  font-size: clamp(2.5rem, 5vw, 3.5rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+  margin: 0 0 1.5rem 0;
+}
+
+.about-divider {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: 0;
+}
+
+.about-section {
+  margin-bottom: 2.5rem;
+}
+
+@media (min-width: 768px) {
+  .about-section {
+    margin-bottom: 3rem;
+  }
+}
+
+.about-heading {
+  font-family: var(--font-serif);
+  font-size: clamp(1.375rem, 2.5vw, 1.625rem);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--color-ink);
+  margin: 0 0 1.25rem 0;
+}
+
+.about-lead {
+  font-family: var(--font-sans);
+  font-size: clamp(1.0625rem, 1.5vw, 1.1875rem);
+  font-weight: 400;
+  line-height: 1.75;
+  color: var(--color-ink);
+  margin: 0 0 1.5rem 0;
+}
+
+.about-body {
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.8;
+  color: var(--color-ink-secondary);
+  margin: 0 0 1.25rem 0;
+}
+
+.about-body:last-child {
+  margin-bottom: 0;
+}
+
+.about-closing {
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
+/* ----------------------------------------------------------------------------
+   CONTACT PAGE
+   ---------------------------------------------------------------------------- */
+.contact-page {
+  padding-top: 3rem;
+  padding-bottom: 4rem;
+}
+
+@media (min-width: 768px) {
+  .contact-page {
+    padding-top: 4rem;
+    padding-bottom: 5rem;
+  }
+}
+
+.contact-page .container-editorial {
+  max-width: 720px;
+}
+
+.contact-header {
+  margin-bottom: 3rem;
+}
+
+.contact-title {
+  font-family: var(--font-serif);
+  font-size: clamp(2.5rem, 5vw, 3.5rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+  margin: 0 0 1.5rem 0;
+}
+
+.contact-divider {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: 0;
+}
+
+.contact-section {
+  margin-bottom: 2.5rem;
+}
+
+@media (min-width: 768px) {
+  .contact-section {
+    margin-bottom: 3rem;
+  }
+}
+
+.contact-heading {
+  font-family: var(--font-serif);
+  font-size: clamp(1.375rem, 2.5vw, 1.625rem);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--color-ink);
+  margin: 0 0 1.25rem 0;
+}
+
+.contact-lead {
+  font-family: var(--font-sans);
+  font-size: clamp(1.0625rem, 1.5vw, 1.1875rem);
+  font-weight: 400;
+  line-height: 1.75;
+  color: var(--color-ink);
+  margin: 0 0 1.5rem 0;
+}
+
+.contact-body {
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.8;
+  color: var(--color-ink-secondary);
+  margin: 0 0 1.25rem 0;
+}
+
+.contact-body:last-child {
+  margin-bottom: 0;
+}
+
+.contact-email {
+  margin: 1.25rem 0 0 0;
+}
+
+.email-link {
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--color-ink);
+  text-decoration: none;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 2px;
+  transition: border-color 0.15s ease;
+}
+
+.email-link:hover {
+  border-color: var(--color-ink);
+}
+
+.email-link:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 4px;
+  border-color: transparent;
+}
+
+.contact-jurisdiction {
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border);
+  margin-bottom: 1.5rem;
+}
+
+.contact-jurisdiction .contact-body {
+  font-style: italic;
+  color: var(--color-muted);
+}
+
+.contact-closing {
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.contact-closing .contact-body {
+  color: var(--color-muted);
+  font-size: 0.9375rem;
+}
+
+/* ----------------------------------------------------------------------------
+   TERMS & CONDITIONS PAGE
+   ---------------------------------------------------------------------------- */
+.terms-page {
+  padding-top: 3rem;
+  padding-bottom: 4rem;
+}
+
+@media (min-width: 768px) {
+  .terms-page {
+    padding-top: 4rem;
+    padding-bottom: 5rem;
+  }
+}
+
+.terms-page .container-editorial {
+  max-width: 720px;
+}
+
+.terms-header {
+  margin-bottom: 3rem;
+}
+
+.terms-title {
+  font-family: var(--font-serif);
+  font-size: clamp(2.5rem, 5vw, 3.5rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+  margin: 0 0 1.5rem 0;
+}
+
+.terms-divider {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: 0;
+}
+
+.terms-section {
+  margin-bottom: 2.5rem;
+}
+
+@media (min-width: 768px) {
+  .terms-section {
+    margin-bottom: 3rem;
+  }
+}
+
+.terms-heading {
+  font-family: var(--font-serif);
+  font-size: clamp(1.375rem, 2.5vw, 1.625rem);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--color-ink);
+  margin: 0 0 1.25rem 0;
+}
+
+.terms-lead {
+  font-family: var(--font-sans);
+  font-size: clamp(1.0625rem, 1.5vw, 1.1875rem);
+  font-weight: 400;
+  line-height: 1.75;
+  color: var(--color-ink);
+  margin: 0 0 1.5rem 0;
+}
+
+.terms-body {
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.8;
+  color: var(--color-ink-secondary);
+  margin: 0 0 1.25rem 0;
+}
+
+.terms-body:last-child {
+  margin-bottom: 0;
+}
+
+.terms-list {
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.8;
+  color: var(--color-ink-secondary);
+  margin: 0 0 1.25rem 0;
+  padding-left: 1.5rem;
+}
+
+.terms-list li {
+  margin-bottom: 0.5rem;
+}
+
+.terms-list li:last-child {
+  margin-bottom: 0;
+}
+
+.terms-governance {
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.terms-closing {
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.terms-closing .terms-body {
+  color: var(--color-muted);
+  font-size: 0.9375rem;
+}
+
+.terms-link {
+  color: var(--color-ink);
+  text-decoration: none;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 1px;
+  transition: border-color 0.15s ease;
+}
+
+.terms-link:hover {
+  border-color: var(--color-ink);
+}
+
+.terms-link:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 4px;
+  border-color: transparent;
+}
+
+/* ----------------------------------------------------------------------------
+   PRIVACY POLICY PAGE
+   ---------------------------------------------------------------------------- */
+.privacy-page {
+  padding-top: 3rem;
+  padding-bottom: 4rem;
+}
+
+@media (min-width: 768px) {
+  .privacy-page {
+    padding-top: 4rem;
+    padding-bottom: 5rem;
+  }
+}
+
+.privacy-page .container-editorial {
+  max-width: 720px;
+}
+
+.privacy-header {
+  margin-bottom: 3rem;
+}
+
+.privacy-title {
+  font-family: var(--font-serif);
+  font-size: clamp(2.5rem, 5vw, 3.5rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+  margin: 0 0 1.5rem 0;
+}
+
+.privacy-divider {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: 0;
+}
+
+.privacy-section {
+  margin-bottom: 2.5rem;
+}
+
+@media (min-width: 768px) {
+  .privacy-section {
+    margin-bottom: 3rem;
+  }
+}
+
+.privacy-heading {
+  font-family: var(--font-serif);
+  font-size: clamp(1.375rem, 2.5vw, 1.625rem);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--color-ink);
+  margin: 0 0 1.25rem 0;
+}
+
+.privacy-subheading {
+  font-family: var(--font-serif);
+  font-size: clamp(1.0625rem, 2vw, 1.1875rem);
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.005em;
+  color: var(--color-ink);
+  margin: 1.5rem 0 1rem 0;
+}
+
+.privacy-subheading:first-of-type {
+  margin-top: 0;
+}
+
+.privacy-lead {
+  font-family: var(--font-sans);
+  font-size: clamp(1.0625rem, 1.5vw, 1.1875rem);
+  font-weight: 400;
+  line-height: 1.75;
+  color: var(--color-ink);
+  margin: 0 0 1.5rem 0;
+}
+
+.privacy-body {
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.8;
+  color: var(--color-ink-secondary);
+  margin: 0 0 1.25rem 0;
+}
+
+.privacy-body:last-child {
+  margin-bottom: 0;
+}
+
+.privacy-emphasis {
+  color: var(--color-ink);
+  font-weight: 500;
+}
+
+.privacy-list {
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.8;
+  color: var(--color-ink-secondary);
+  margin: 0 0 1.25rem 0;
+  padding-left: 1.5rem;
+}
+
+.privacy-list li {
+  margin-bottom: 0.5rem;
+}
+
+.privacy-list li:last-child {
+  margin-bottom: 0;
+}
+
+.privacy-updates {
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.privacy-closing {
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.privacy-closing .privacy-body {
+  color: var(--color-muted);
+  font-size: 0.9375rem;
+}
+
+.privacy-link {
+  color: var(--color-ink);
+  text-decoration: none;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 1px;
+  transition: border-color 0.15s ease;
+}
+
+.privacy-link:hover {
+  border-color: var(--color-ink);
+}
+
+.privacy-link:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 4px;
+  border-color: transparent;
+}
+
+/* ----------------------------------------------------------------------------
    IMAGE PLACEHOLDERS (for demo without actual images)
    ---------------------------------------------------------------------------- */
 .image-placeholder {

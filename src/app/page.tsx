@@ -16,6 +16,7 @@
  * This component only handles rendering and layout.
  */
 
+
 import { getHomepageData } from "@/lib/content/homepage";
 import { LeadStory, TopStories, SectionBlock } from "@/components/editorial";
 
@@ -91,6 +92,8 @@ export default function HomePage() {
           articles={sections.opinion}
         />
       </div>
+
+
     </main>
   );
 }

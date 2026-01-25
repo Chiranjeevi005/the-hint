@@ -90,7 +90,7 @@ function LoginForm() {
                         disabled={status === 'loading'}
                         className="w-full bg-neutral-900 text-white py-2 px-4 hover:bg-neutral-800 transition-colors disabled:opacity-50 text-sm font-medium uppercase tracking-wide"
                     >
-                        {status === 'loading' ? 'Sending...' : 'Send Magic Link'}
+                        {status === 'loading' ? 'Sending...' : 'Send Link'}
                     </button>
                 </form>
             )}

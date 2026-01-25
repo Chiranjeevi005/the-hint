@@ -175,7 +175,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
         const input = body as PublishArticleInput;
 
-        // Ensure status is 'published' for this endpoint
         if (input.status !== 'published') {
             return NextResponse.json(
                 {
@@ -267,6 +266,23 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
                 },
                 { status: 500 }
             );
+        }
+
+        // Send New Article Notification Email to subscribers
+        try {
+            await import('@/lib/newArticleEmail').then(mod => mod.sendNewArticleNotification({
+                headline: articleData.headline,
+                summary: articleData.subheadline || 'Read the full story on our website.',
+                section: articleData.section,
+                contentType: articleData.contentType,
+                publishedAt: new Date().toISOString(),
+                articleUrl: `/${articleData.section}/${articleData.slug}`,
+                isUpdate: !!isSelfUpdate
+            }));
+        } catch (emailError) {
+            console.error('Failed to send article notification email:', emailError);
+            // We do NOT fail the request because the article IS published. 
+            // In a real system we would queue a retry.
         }
 
         // If there was a draft ID, remove the draft
