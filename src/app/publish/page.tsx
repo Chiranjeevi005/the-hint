@@ -80,6 +80,7 @@ export default function PublishPage() {
     const [isPreviewLoading, setIsPreviewLoading] = useState(false);
     const [isPublishing, setIsPublishing] = useState(false);
     const [showPreview, setShowPreview] = useState(false);
+    const [showConfirmDialog, setShowConfirmDialog] = useState(false);
     const [previewData, setPreviewData] = useState<PreviewData | null>(null);
 
     // Toast notifications
@@ -118,6 +119,7 @@ export default function PublishPage() {
             placement: formData.placement,
             draftId: formData.draftId,
             status: formData.status,
+            slug: formData.slug || undefined,
         };
     }, [formData]);
 
@@ -267,14 +269,9 @@ export default function PublishPage() {
     }, [buildPayload, showToast]);
 
     /**
-     * Publish
+     * Execute Publish (after confirmation)
      */
-    const handlePublish = useCallback(async () => {
-        // Confirm before publishing
-        if (!window.confirm('Are you sure you want to publish this article?\n\nThis action is IRREVERSIBLE.')) {
-            return;
-        }
-
+    const executePublish = useCallback(async () => {
         setIsPublishing(true);
         setFieldErrors({});
 
@@ -308,6 +305,17 @@ export default function PublishPage() {
             setIsPublishing(false);
         }
     }, [buildPayload, parseFieldErrors, showToast]);
+
+    /**
+     * Handle Publish Click
+     */
+    const handlePublish = useCallback(() => {
+        if (!canPublish(formData)) {
+            showToast('error', 'Cannot publish: Missing headline, subheadline, section, or body content.');
+            return;
+        }
+        setShowConfirmDialog(true);
+    }, [formData, showToast]);
 
     /**
      * Logout
@@ -359,6 +367,38 @@ export default function PublishPage() {
             }
         } catch {
             showToast('error', 'Network error while duplicating');
+        }
+    }, [mode, fetchArticles, showToast]);
+
+    /**
+     * Remove Placement
+     */
+    const handleRemovePlacement = useCallback(async (article: ArticleEntry) => {
+        if (!confirm(`Remove "${article.title}" from ${article.placement === 'lead' ? 'Lead Story' : 'Top Story'}?`)) {
+            return;
+        }
+
+        try {
+            const payload = { ...article.data, placement: 'standard' };
+            const endpoint = article.status === 'published' ? '/api/publish' : '/api/publish/draft';
+
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+
+            const result: ApiResponse = await response.json();
+
+            if (result.success) {
+                showToast('success', 'Placement removed');
+                const filter = mode === 'drafts' ? 'drafts' : mode === 'published' ? 'published' : undefined;
+                fetchArticles(filter);
+            } else {
+                showToast('error', result.error || 'Failed to update placement');
+            }
+        } catch {
+            showToast('error', 'Network error');
         }
     }, [mode, fetchArticles, showToast]);
 
@@ -441,9 +481,41 @@ export default function PublishPage() {
                         onEdit={handleEdit}
                         onDuplicate={handleDuplicate}
                         onDelete={handleDelete}
+                        onRemovePlacement={handleRemovePlacement}
                     />
                 )}
             </main>
+
+            {/* Confirmation Dialog */}
+            {showConfirmDialog && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white p-6 max-w-md w-full shadow-xl border-2 border-black">
+                        <h3 className="text-2xl font-serif font-bold mb-4 font-playfair">Confirm Publication</h3>
+                        <p className="text-gray-700 mb-6 font-sans">
+                            Are you sure you want to publish this article?
+                            <br /><br />
+                            <strong>Headline:</strong> {formData.headline}<br />
+                            <strong>Section:</strong> {formData.section}
+                            <br /><br />
+                            This action is <strong>IRREVERSIBLE</strong>. The article will immediately go live.
+                        </p>
+                        <div className="flex justify-end gap-3 font-sans">
+                            <button
+                                onClick={() => setShowConfirmDialog(false)}
+                                className="px-4 py-2 hover:bg-gray-100 border border-transparent font-medium"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => { setShowConfirmDialog(false); executePublish(); }}
+                                className="px-4 py-2 bg-black text-white hover:bg-gray-800 font-medium"
+                            >
+                                Publish Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

@@ -175,6 +175,7 @@ export interface PublishArticleInput {
     placement: unknown;
     status: unknown;
     sources: unknown;
+    slug?: unknown;
 }
 
 /**

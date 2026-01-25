@@ -216,8 +216,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             );
         }
 
-        // Check if slug already exists - REJECT with 409 Conflict
-        if (slugExists(articleData.section, articleData.slug)) {
+        // Check if slug already exists
+        // ALLOW overwrite if input.slug matches generated slug (Minute changes/Update)
+        const targetSlug = articleData.slug;
+        const inputSlug = typeof input.slug === 'string' && input.slug ? input.slug : null;
+        const isSelfUpdate = inputSlug && inputSlug === targetSlug;
+
+        if (!isSelfUpdate && slugExists(articleData.section, targetSlug)) {
             return NextResponse.json(
                 {
                     success: false,

@@ -27,6 +27,7 @@ import {
     CONTENT_TYPES,
 } from './types';
 import { BlockEditor } from './BlockEditor';
+import { ArticleBody } from '@/components/article/ArticleBody';
 import styles from './ArticleEditor.module.css';
 
 
@@ -239,9 +240,7 @@ videoId: dQw4w9WgXcQ
                                 {previewData.placement === 'top' && <span className={styles.previewFeatured}>Top Story</span>}
                             </div>
                             <div className={styles.previewBody}>
-                                {previewData.body.split('\n').map((paragraph, i) => (
-                                    <p key={i}>{paragraph}</p>
-                                ))}
+                                <ArticleBody content={previewData.body} />
                             </div>
                             {previewData.tags.length > 0 && (
                                 <div className={styles.previewTags}>

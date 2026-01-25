@@ -122,9 +122,9 @@ function takeFirst(articles: Article[], count: number): Article[] {
  * - If none, return null
  */
 function selectLeadStory(articles: Article[]): Article | null {
-    // Filter: placement='lead' AND not opinion
+    // Filter: placement='lead' (allow opinion if explicitly promoted)
     const candidates = articles.filter(
-        article => isPlacement(article, 'lead') && !isOpinion(article)
+        article => isPlacement(article, 'lead')
     );
 
     if (candidates.length === 0) {
@@ -264,8 +264,9 @@ export function getHomepageData(): HomepageData {
     }
 
     // Select top stories (excluding lead story via usedIds)
+    // Allow opinion ONLY if explicitly placed as 'top'
     const topStoryCandidates = excludeUsed(
-        allArticles.filter(a => !isOpinion(a))
+        allArticles.filter(a => !isOpinion(a) || isPlacement(a, 'top'))
     );
 
     // Sort by placement='top' priority, then publishedAt descending

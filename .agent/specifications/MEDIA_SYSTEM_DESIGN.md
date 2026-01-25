@@ -269,12 +269,14 @@ export interface ArticleWithMedia extends Omit<Article, 'body'> {
 
 ## 5. Block-Based Content Model
 
-### Block Ordering Rules
+### Block Ordering Rules (WAIVED / RELAXED)
 
-1. **First block** MUST be a text block (paragraph, subheading, or quote)
-2. **Last block** MUST be a text block
-3. **Media blocks** MUST have at least one text block before AND after
-4. **Consecutive media blocks** are NOT allowed
+> **UPDATE 2026-01-25:** The following strict ordering rules have been **WAIVED** to allow flexible editorial layouts. Editors may place media at the start/end or consecutively if desired.
+
+1. ~~**First block** MUST be a text block (paragraph, subheading, or quote)~~ (WAIVED)
+2. ~~**Last block** MUST be a text block~~ (WAIVED)
+3. ~~**Media blocks** MUST have at least one text block before AND after~~ (WAIVED)
+4. ~~**Consecutive media blocks** are NOT allowed~~ (WAIVED)
 
 > **Text Context Clarification:** For the purposes of block ordering validation, `paragraph`, `subheading`, and `quote` blocks ALL qualify as valid "text context". A sequence like `subheading → image → paragraph` is valid. A sequence like `quote → video → quote` is also valid.
 5. Block order defines reading flow (no reordering on render)
@@ -706,7 +708,9 @@ export function validateMediaBlocks(blocks: ContentBlock[]): MediaValidationResu
     }
   }
   
-  // Validate block ordering (no consecutive media, text context required)
+  // Validate block ordering (WAIVED / RELAXED)
+  /* 
+  // STRICT RULES CURRENTLY DISABLED per user request (2026-01-25)
   for (let i = 0; i < blocks.length; i++) {
     const block = blocks[i];
     const isMedia = block.type === 'image' || block.type === 'video';
@@ -741,6 +745,7 @@ export function validateMediaBlocks(blocks: ContentBlock[]): MediaValidationResu
       }
     }
   }
+  */
   
   return {
     isValid: errors.length === 0,

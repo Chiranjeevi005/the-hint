@@ -79,7 +79,10 @@ export function BlockEditor({
     const [editingBlock, setEditingBlock] = useState<ContentBlock | null>(null);
 
     // Refs for managing focus
+    // Refs for managing focus
     const blockRefs = useRef<Map<string, HTMLTextAreaElement | HTMLDivElement>>(new Map());
+    // Ref to track internal changes to prevent loops
+    const isInternalChange = useRef(false);
 
     // Calculate media summary
     const mediaSummary = useMemo(() => calculateMediaSummary(blocks), [blocks]);
@@ -88,12 +91,18 @@ export function BlockEditor({
     useEffect(() => {
         const markdown = serializeBlocksToMarkdown(blocks);
         if (markdown !== value) {
+            isInternalChange.current = true;
             onChange(markdown);
         }
-    }, [blocks, onChange]);
+    }, [blocks, onChange, value]);
 
     // Re-parse when external value changes significantly
     useEffect(() => {
+        if (isInternalChange.current) {
+            isInternalChange.current = false;
+            return;
+        }
+
         const currentMarkdown = serializeBlocksToMarkdown(blocks);
         if (value !== currentMarkdown) {
             const result = parseBodyToBlocks(value);
@@ -101,6 +110,7 @@ export function BlockEditor({
                 setBlocks(result.blocks);
             }
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [value]);
 
     // ==========================================================================

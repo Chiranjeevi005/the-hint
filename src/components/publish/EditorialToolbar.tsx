@@ -119,7 +119,7 @@ export function EditorialToolbar({
                             type="button"
                             className={`${styles.actionButton} ${styles.publishAction}`}
                             onClick={onPublish}
-                            disabled={isPublishing || !canPublish}
+                            disabled={isPublishing}
                         >
                             {isPublishing ? 'Publishing...' : 'Publish'}
                         </button>

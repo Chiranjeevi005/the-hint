@@ -151,84 +151,17 @@ export function validateMediaBlocks(blocks: ContentBlock[]): MediaValidationResu
         });
     }
 
-    // Validate first block is text
-    if (isMediaBlock(blocks[0])) {
-        errors.push({
-            type: 'article_starts_with_media',
-            message: 'Article must begin with text content, not media',
-            blockId: blocks[0].id,
-            blockIndex: 0,
-        });
-    }
-
-    // Validate last block is text
-    const lastBlock = blocks[blocks.length - 1];
-    if (isMediaBlock(lastBlock)) {
-        errors.push({
-            type: 'article_ends_with_media',
-            message: 'Article must end with text content, not media',
-            blockId: lastBlock.id,
-            blockIndex: blocks.length - 1,
-        });
-    }
-
-    // Validate each block
+    // Validate individual blocks (Context/Consecutive rules removed per "no minimum rule")
     for (let i = 0; i < blocks.length; i++) {
         const block = blocks[i];
-        const prevBlock = blocks[i - 1];
-        const nextBlock = blocks[i + 1];
-
         if (isImageBlock(block)) {
             validateImageBlock(block, i, errors, warnings);
         }
-
         if (isVideoBlock(block)) {
             validateVideoBlock(block, i, errors, warnings);
         }
-
-        // Check for consecutive media blocks
-        if (isMediaBlock(block) && prevBlock && isMediaBlock(prevBlock)) {
-            errors.push({
-                type: 'consecutive_media_blocks',
-                message: 'Media blocks must be separated by text content',
-                blockId: block.id,
-                blockIndex: i,
-            });
-        }
-
-        // Check for text context (not first or last - those are caught above)
-        if (isMediaBlock(block) && i > 0 && i < blocks.length - 1) {
-            // Check text before (already caught by consecutive check, but be explicit)
-            if (!prevBlock || !isTextBlock(prevBlock)) {
-                // Only add if not already caught by consecutive media error
-                const hasConsecutiveError = errors.some(
-                    e => e.type === 'consecutive_media_blocks' && e.blockIndex === i
-                );
-                if (!hasConsecutiveError) {
-                    errors.push({
-                        type: 'no_text_context_before',
-                        message: 'Media block must have text content before it',
-                        blockId: block.id,
-                        blockIndex: i,
-                    });
-                }
-            }
-
-            // Check text after
-            if (!nextBlock || !isTextBlock(nextBlock)) {
-                // Will be caught when we process the next block if it's media
-                // But catch the case where next is undefined or invalid
-                if (!nextBlock) {
-                    errors.push({
-                        type: 'no_text_context_after',
-                        message: 'Media block must have text content after it',
-                        blockId: block.id,
-                        blockIndex: i,
-                    });
-                }
-            }
-        }
     }
+
 
     return {
         isValid: errors.length === 0,
@@ -557,27 +490,9 @@ export function canInsertMediaAt(
     position: number,
     mediaType: 'image' | 'video'
 ): { valid: boolean; reason?: string } {
-    // Can't insert at start
-    if (position === 0) {
-        return { valid: false, reason: 'Media cannot be the first block' };
-    }
+    // Helper options for validation
+    // Removing position checks per "no minimum rule" request
 
-    // Can't insert at end (would become last block)
-    if (position >= blocks.length) {
-        return { valid: false, reason: 'Media cannot be the last block' };
-    }
-
-    // Check if previous block is media
-    const prevBlock = blocks[position - 1];
-    if (prevBlock && isMediaBlock(prevBlock)) {
-        return { valid: false, reason: 'Media blocks must be separated by text' };
-    }
-
-    // Check if next block is media
-    const nextBlock = blocks[position];
-    if (nextBlock && isMediaBlock(nextBlock)) {
-        return { valid: false, reason: 'Media blocks must be separated by text' };
-    }
 
     // Check limits
     if (mediaType === 'image') {

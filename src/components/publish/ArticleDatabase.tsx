@@ -26,7 +26,10 @@ interface ArticleDatabaseProps {
     /** Handler for duplicating an article */
     onDuplicate: (article: ArticleEntry) => void;
     /** Handler for deleting an article */
+    /** Handler for deleting an article */
     onDelete: (article: ArticleEntry) => void;
+    /** Handler for removing homepage placement */
+    onRemovePlacement: (article: ArticleEntry) => void;
 }
 
 export function ArticleDatabase({
@@ -36,6 +39,7 @@ export function ArticleDatabase({
     onEdit,
     onDuplicate,
     onDelete,
+    onRemovePlacement,
 }: ArticleDatabaseProps) {
     // Filter state
     const [sectionFilter, setSectionFilter] = useState<string>('all');
@@ -226,9 +230,24 @@ export function ArticleDatabase({
                                         </span>
                                     </td>
                                     <td className={styles.cellPlacement}>
-                                        <span className={article.placement !== 'standard' ? styles.placementHighlight : ''}>
-                                            {getPlacementLabel(article.placement)}
-                                        </span>
+                                        {article.placement !== 'standard' ? (
+                                            <span className={`${styles.badge} ${article.placement === 'lead' ? styles.badgeLead : styles.badgeTop}`}>
+                                                {getPlacementLabel(article.placement)}
+                                                <button
+                                                    type="button"
+                                                    className={styles.removePlacementBtn}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        onRemovePlacement(article);
+                                                    }}
+                                                    title="Remove placement"
+                                                >
+                                                    ×
+                                                </button>
+                                            </span>
+                                        ) : (
+                                            <span className={styles.textMuted}>—</span>
+                                        )}
                                     </td>
                                     <td className={styles.cellDate}>
                                         <span className={styles.dateMain}>{formatDate(article.lastEdited)}</span>
