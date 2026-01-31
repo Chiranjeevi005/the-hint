@@ -59,3 +59,26 @@ export function getActiveSubscribers(): string[] {
         .filter(s => s.active)
         .map(s => s.email);
 }
+
+export function unsubscribe(email: string): { success: boolean; message: string } {
+    const subscribers = readSubscribers();
+    const subscriber = subscribers.find(s => s.email.toLowerCase() === email.toLowerCase());
+
+    if (!subscriber) {
+        return { success: false, message: 'Email not found in our subscription list.' };
+    }
+
+    if (!subscriber.active) {
+        return { success: true, message: 'You are already unsubscribed.' };
+    }
+
+    subscriber.active = false;
+    writeSubscribers(subscribers);
+    return { success: true, message: 'You have been successfully unsubscribed.' };
+}
+
+export function isSubscribed(email: string): boolean {
+    const subscribers = readSubscribers();
+    const subscriber = subscribers.find(s => s.email.toLowerCase() === email.toLowerCase());
+    return subscriber ? subscriber.active : false;
+}

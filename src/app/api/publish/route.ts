@@ -268,21 +268,31 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             );
         }
 
-        // Send New Article Notification Email to subscribers
+        // Initialize Subscription Event (Control Plane)
+        // This is strictly decoupled - filesystem queue
         try {
-            await import('@/lib/newArticleEmail').then(mod => mod.sendNewArticleNotification({
+            const { queueManager } = await import('@/lib/subscription/queue');
+            queueManager.enqueue({
+                articleSlug: articleData.slug,
+                section: articleData.section,
                 headline: articleData.headline,
                 summary: articleData.subheadline || 'Read the full story on our website.',
-                section: articleData.section,
-                contentType: articleData.contentType,
-                publishedAt: new Date().toISOString(),
-                articleUrl: `/${articleData.section}/${articleData.slug}`,
-                isUpdate: !!isSelfUpdate
-            }));
-        } catch (emailError) {
-            console.error('Failed to send article notification email:', emailError);
-            // We do NOT fail the request because the article IS published. 
-            // In a real system we would queue a retry.
+                contentType: (articleData.contentType as 'news' | 'opinion') || 'news',
+                priority: 'normal', // Default, could be enhanced later
+            });
+            console.log(`[PUBLISH] Subscription event enqueued for ${articleData.slug}`);
+
+            // Auto-trigger queue processor in background (fire and forget)
+            // This does NOT block the publish response
+            import('@/lib/subscription/processor').then(mod => {
+                mod.processSubscriptionQueue()
+                    .then(result => console.log(`[PUBLISH] Queue processor triggered: ${result.processed} emails sent`))
+                    .catch(err => console.error('[PUBLISH] Queue processor error:', err));
+            }).catch(err => console.error('[PUBLISH] Failed to load queue processor:', err));
+
+        } catch (queueError) {
+            console.error('Failed to enqueue subscription event:', queueError);
+            // Critical: Do NOT fail publishing. Valid content > Email delivery.
         }
 
         // If there was a draft ID, remove the draft
@@ -305,6 +315,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             },
             { status: 201 }
         );
+
 
     } catch (error) {
         console.error('Unexpected error in publish API:', error);

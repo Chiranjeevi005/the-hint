@@ -1,0 +1,86 @@
+[
+  {
+    "id": "6ab28af7-8b02-4f56-a5e4-2a7c02292312",
+    "articleSlug": "sffadxsaasasdadasd",
+    "section": "crime",
+    "headline": "sffadxsaasasdadasd",
+    "summary": "adasdwqewrwerewrwere",
+    "contentType": "news",
+    "priority": "normal",
+    "createdAt": "2026-01-31T14:13:46.344Z",
+    "status": "sent",
+    "attempts": 0,
+    "processedCount": 4,
+    "sentEmails": [
+      "bhuvaneshwari9011@gmail.com",
+      "venugopal6362@gmail.com",
+      "chiranjeevi8050@gmail.com",
+      "smartinboxauto@gmail.com"
+    ],
+    "lastAttemptAt": "2026-01-31T14:14:06.239Z",
+    "totalSubscribers": 4
+  },
+  {
+    "id": "6ad0fa2e-9774-4eef-a06a-2939a25d8943",
+    "articleSlug": "sffadxsaasasdadasd",
+    "section": "crime",
+    "headline": "sffadxsaasasdadasd",
+    "summary": "adasdwqewrwerewrwere",
+    "contentType": "news",
+    "priority": "normal",
+    "createdAt": "2026-01-31T14:17:32.795Z",
+    "status": "sent",
+    "attempts": 0,
+    "processedCount": 4,
+    "sentEmails": [
+      "bhuvaneshwari9011@gmail.com",
+      "venugopal6362@gmail.com",
+      "chiranjeevi8050@gmail.com",
+      "smartinboxauto@gmail.com"
+    ],
+    "lastAttemptAt": "2026-01-31T14:17:51.958Z",
+    "totalSubscribers": 4
+  },
+  {
+    "id": "ab560931-33b8-426b-b258-a353ffabb6fd",
+    "articleSlug": "sffadxsaasasdadasd",
+    "section": "crime",
+    "headline": "sffadxsaasasdadasd",
+    "summary": "adasdwqewrwerewrwere",
+    "contentType": "news",
+    "priority": "normal",
+    "createdAt": "2026-01-31T14:21:06.503Z",
+    "status": "sent",
+    "attempts": 0,
+    "processedCount": 4,
+    "sentEmails": [
+      "bhuvaneshwari9011@gmail.com",
+      "venugopal6362@gmail.com",
+      "chiranjeevi8050@gmail.com",
+      "smartinboxauto@gmail.com"
+    ],
+    "lastAttemptAt": "2026-01-31T14:21:26.583Z",
+    "totalSubscribers": 4
+  },
+  {
+    "id": "5339bfd2-bd11-493e-8321-b7f627f5e35d",
+    "articleSlug": "sffadxsaasasdad",
+    "section": "opinion",
+    "headline": "sffadxsaasasdad",
+    "summary": "adasdwqewrwerewrwere",
+    "contentType": "opinion",
+    "priority": "normal",
+    "createdAt": "2026-01-31T14:22:35.796Z",
+    "status": "sent",
+    "attempts": 0,
+    "processedCount": 4,
+    "sentEmails": [
+      "bhuvaneshwari9011@gmail.com",
+      "venugopal6362@gmail.com",
+      "chiranjeevi8050@gmail.com",
+      "smartinboxauto@gmail.com"
+    ],
+    "lastAttemptAt": "2026-01-31T14:22:56.099Z",
+    "totalSubscribers": 4
+  }
+]

@@ -6,9 +6,9 @@ async function main() {
     process.env.SMTP_USER = 'chiranjeevi8050@gmail.com';
     process.env.SMTP_PASS = 'codpbllmulptypqw'; // App password without spaces
     process.env.SMTP_FROM = 'The Editorial Desk <chiranjeevi8050@gmail.com>';
-    process.env.NEXT_PUBLIC_BASE_URL = 'http://localhost:3000';
+    process.env.NEXT_PUBLIC_BASE_URL = 'http://localhost:3002';
 
-    const { sendWelcomeEmail } = await import('../src/lib/email');
+    const { sendWelcomeEmail } = await import('../src/lib/welcomeEmail');
 
     console.log('Sending test welcome email to smartinboxauto@gmail.com...');
     await sendWelcomeEmail('smartinboxauto@gmail.com');

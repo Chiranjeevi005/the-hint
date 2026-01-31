@@ -14,3 +14,6 @@
 {"timestamp":"2026-01-25T11:25:43.612Z","action":"NEW_ARTICLE_NOTIFICATION_SENT","article":"hjhnbnmbjkghjkhjk","section":"court","recipientCount":3,"successCount":3,"failCount":0}
 {"timestamp":"2026-01-25T11:26:28.375Z","action":"NEW_ARTICLE_NOTIFICATION_SENT","article":"nxtwave engineer","section":"opinion","recipientCount":3,"successCount":3,"failCount":0}
 {"timestamp":"2026-01-25T11:57:36.993Z","action":"WELCOME_EMAIL_SENT","recipient":"chiranjeevi8050@gmail.com","subject":"You're subscribed — here's what to expect","status":"SUCCESS"}
+{"timestamp":"2026-01-31T13:56:57.927Z","action":"WELCOME_EMAIL_SENT","recipient":"smartinboxauto@gmail.com","subject":"You're subscribed — here's what to expect","status":"SUCCESS"}
+{"timestamp":"2026-01-31T14:01:47.457Z","action":"WELCOME_EMAIL_SENT","recipient":"smartinboxauto@gmail.com","subject":"You're subscribed — here's what to expect","status":"SUCCESS"}
+{"timestamp":"2026-01-31T14:09:44.420Z","action":"WELCOME_EMAIL_SENT","recipient":"smartinboxauto@gmail.com","subject":"You're subscribed — here's what to expect","status":"SUCCESS"}

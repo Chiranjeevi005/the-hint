@@ -223,7 +223,10 @@ export function Header({ latestUpdate, tickerHeadlines = [] }: HeaderProps) {
                                 LATEST
                             </span>
                             <div className="flex-1 overflow-hidden relative">
-                                <div className="ticker-container hover:pause">
+                                <div
+                                    className="ticker-container hover:pause"
+                                    style={{ animationPlayState: isSubscribeOpen ? 'paused' : undefined }}
+                                >
                                     {[...tickerHeadlines, ...tickerHeadlines].map((headline, idx) => (
                                         <Link
                                             key={`${idx}-${headline}`}

@@ -1,6 +1,5 @@
 import nodemailer from 'nodemailer';
 import { getActiveSubscribers } from './subscription';
-import { getAllArticles } from './content/reader';
 
 const EMAIL_LOG_FILE = 'sent-emails.log';
 
@@ -34,7 +33,16 @@ export async function sendArticleEmail(article: ArticleEmailData): Promise<void>
     }
 
     const subject = `THE HINT: ${article.headline}`;
-    const htmlContent = `
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3002';
+
+    console.log(`[EMAIL-SYSTEM] Preparing to dispatch "${article.headline}" to ${subscribers.length} subscribers.`);
+
+    const transporter = createTransporter();
+    const fromAddress = process.env.SMTP_FROM || process.env.SMTP_USER;
+
+    // Send to each subscriber with personalized unsubscribe link
+    for (const recipientEmail of subscribers) {
+        const htmlContent = `
         <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; color: #111; background-color: #ffffff;">
             <div style="text-align: center; padding: 20px 0; border-bottom: 2px solid #111;">
                 <h1 style="font-size: 28px; font-weight: 900; letter-spacing: -0.5px; margin: 0;">THE HINT</h1>
@@ -47,25 +55,17 @@ export async function sendArticleEmail(article: ArticleEmailData): Promise<void>
                 <p style="font-size: 17px; line-height: 1.6; color: #333; margin: 0 0 25px 0;">
                     ${article.summary}
                 </p>
-                <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}${article.url}" 
+                <a href="${baseUrl}${article.url}" 
                    style="display: inline-block; background: #111; color: #fff; text-decoration: none; padding: 14px 28px; font-family: Arial, sans-serif; font-weight: bold; text-transform: uppercase; font-size: 12px; letter-spacing: 1px;">
                     Read Full Article
                 </a>
             </div>
-            <div style="border-top: 1px solid #ddd; padding: 20px; font-family: Arial, sans-serif; font-size: 11px; color: #888; text-align: center;">
-                You are receiving this because you subscribed to The Hint.<br>
-                <a href="#" style="color: #666; text-decoration: underline;">Unsubscribe</a>
+            <div style="padding: 20px; font-family: Arial, sans-serif; font-size: 11px; color: #888; text-align: center;">
+                <a href="${baseUrl}/api/unsubscribe?email=${encodeURIComponent(recipientEmail)}" style="color: #666; text-decoration: underline;">Unsubscribe</a>
             </div>
         </div>
     `;
 
-    console.log(`[EMAIL-SYSTEM] Preparing to dispatch "${article.headline}" to ${subscribers.length} subscribers.`);
-
-    const transporter = createTransporter();
-    const fromAddress = process.env.SMTP_FROM || process.env.SMTP_USER;
-
-    // Send to each subscriber
-    for (const recipientEmail of subscribers) {
         try {
             await transporter.sendMail({
                 from: fromAddress,
@@ -92,32 +92,9 @@ export async function sendArticleEmail(article: ArticleEmailData): Promise<void>
     console.log(`[EMAIL-SYSTEM] Successfully dispatched article to ${subscribers.length} recipients.`);
 }
 
+
 export async function sendWelcomeEmail(email: string): Promise<void> {
-    const allArticles = getAllArticles();
-    const latestStory = allArticles.find(a => a.contentType !== 'opinion') || allArticles[0];
-
     const subject = "You're subscribed — here's what to expect";
-
-    const latestStoryHtml = latestStory ? `
-        <div style="margin-top: 30px; border: 1px solid #E5E5E5; padding: 20px; background-color: #F7F6F2; text-align: left;">
-            <div style="font-family: Arial, sans-serif; font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; color: #666; margin-bottom: 8px;">
-                LATEST STORY
-            </div>
-            <h3 style="font-family: Georgia, serif; font-size: 20px; font-weight: bold; color: #111; margin: 0 0 8px 0; line-height: 1.2;">
-                ${latestStory.title}
-            </h3>
-            <p style="font-family: Arial, sans-serif; font-size: 14px; color: #333; line-height: 1.5; margin: 0 0 12px 0;">
-                ${latestStory.subtitle || 'Read the full coverage on our website.'}
-            </p>
-            <div style="font-family: Arial, sans-serif; font-size: 11px; color: #888; margin-bottom: 20px;">
-                 ${latestStory.section.toUpperCase()} • ${new Date(latestStory.publishedAt).toLocaleDateString()}
-            </div>
-            <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/${latestStory.section}/${latestStory.id}" 
-               style="display: inline-block; background: #111; color: #fff; text-decoration: none; padding: 12px 24px; font-family: Arial, sans-serif; font-weight: bold; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">
-                Read the full article →
-            </a>
-        </div>
-    ` : '';
 
     const htmlContent = `
         <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; color: #111; background-color: #ffffff; padding: 0;">
@@ -155,9 +132,6 @@ export async function sendWelcomeEmail(email: string): Promise<void> {
                     </table>
                 </div>
 
-                <!-- Latest Article Preview -->
-                ${latestStoryHtml}
-
                 <!-- Gentle Engagement -->
                 <div style="text-align: center; margin-top: 40px; padding-top: 25px; border-top: 1px solid #E5E5E5;">
                     <p style="font-family: Arial, sans-serif; font-size: 14px; color: #444; margin-bottom: 10px;">
@@ -170,11 +144,8 @@ export async function sendWelcomeEmail(email: string): Promise<void> {
             </div>
 
             <!-- Footer -->
-            <div style="padding: 20px; text-align: center; border-top: 1px solid #eee; background-color: #fafafa;">
-                <p style="font-family: Arial, sans-serif; font-size: 11px; color: #999; line-height: 1.5; margin: 0;">
-                    You received this email because you subscribed on our website.<br>
-                    <a href="#" style="color: #666; text-decoration: underline;">Unsubscribe</a>
-                </p>
+            <div style="padding: 20px; text-align: center; background-color: #fafafa;">
+                <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3002'}/api/unsubscribe?email=${encodeURIComponent(email)}" style="font-family: Arial, sans-serif; font-size: 11px; color: #666; text-decoration: underline;">Unsubscribe</a>
             </div>
         </div>
     `;
