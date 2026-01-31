@@ -22,6 +22,8 @@ import {
     ArticleEditor,
     ArticleDatabase,
     Toast,
+    MobileSettingsPanel,
+    MobileActionBar,
     ArticleFormData,
     ArticleEntry,
     WorkspaceMode,
@@ -31,6 +33,7 @@ import {
     ApiResponse,
     INITIAL_FORM_DATA,
 } from '@/components/publish';
+import { useIsMobile } from '@/hooks/useIsMobile';
 import styles from './page.module.css';
 
 /** Client-side UX validation hints (NOT business logic) */
@@ -85,6 +88,10 @@ export default function PublishPage() {
 
     // Toast notifications
     const [toast, setToast] = useState<ToastMessage | null>(null);
+
+    // Mobile state
+    const isMobile = useIsMobile();
+    const [showMobileSettings, setShowMobileSettings] = useState(false);
 
     // Client hints
     const clientHints = getClientHints(formData);
@@ -441,11 +448,11 @@ export default function PublishPage() {
     }, []);
 
     return (
-        <div className={styles.page}>
+        <div className={`${styles.page} ${isMobile ? styles.mobile : ''}`}>
             {/* Toast Notifications */}
             <Toast toast={toast} onDismiss={() => setToast(null)} />
 
-            {/* Editorial Toolbar */}
+            {/* Editorial Toolbar - Full on desktop, simplified on mobile */}
             <EditorialToolbar
                 mode={mode}
                 onModeChange={handleModeChange}
@@ -459,6 +466,7 @@ export default function PublishPage() {
                 isPublishing={isPublishing}
                 canPublish={canPublish(formData)}
                 draftId={formData.draftId}
+                isMobile={isMobile}
             />
 
             {/* Main Workspace */}
@@ -472,6 +480,7 @@ export default function PublishPage() {
                         previewData={previewData}
                         showPreview={showPreview}
                         onClosePreview={handleClosePreview}
+                        isMobile={isMobile}
                     />
                 ) : (
                     <ArticleDatabase
@@ -486,12 +495,39 @@ export default function PublishPage() {
                 )}
             </main>
 
+            {/* Mobile Settings Panel (Bottom Sheet) */}
+            {isMobile && (
+                <MobileSettingsPanel
+                    formData={formData}
+                    onFormChange={handleFormChange}
+                    fieldErrors={fieldErrors}
+                    clientHints={clientHints}
+                    isOpen={showMobileSettings}
+                    onClose={() => setShowMobileSettings(false)}
+                />
+            )}
+
+            {/* Mobile Action Bar (Fixed Bottom) */}
+            {isMobile && (
+                <MobileActionBar
+                    onOpenSettings={() => setShowMobileSettings(true)}
+                    onSaveDraft={handleSaveDraft}
+                    onPreview={handlePreview}
+                    onPublish={handlePublish}
+                    isSaving={isSaving}
+                    isPreviewLoading={isPreviewLoading}
+                    isPublishing={isPublishing}
+                    canPublish={canPublish(formData)}
+                    isEditorMode={mode === 'editor'}
+                />
+            )}
+
             {/* Confirmation Dialog */}
             {showConfirmDialog && (
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                    <div className="bg-white p-6 max-w-md w-full shadow-xl border-2 border-black">
-                        <h3 className="text-2xl font-serif font-bold mb-4 font-playfair">Confirm Publication</h3>
-                        <p className="text-gray-700 mb-6 font-sans">
+                <div className={styles.confirmOverlay}>
+                    <div className={styles.confirmDialog}>
+                        <h3 className={styles.confirmTitle}>Confirm Publication</h3>
+                        <p className={styles.confirmText}>
                             Are you sure you want to publish this article?
                             <br /><br />
                             <strong>Headline:</strong> {formData.headline}<br />
@@ -499,16 +535,16 @@ export default function PublishPage() {
                             <br /><br />
                             This action is <strong>IRREVERSIBLE</strong>. The article will immediately go live.
                         </p>
-                        <div className="flex justify-end gap-3 font-sans">
+                        <div className={styles.confirmActions}>
                             <button
                                 onClick={() => setShowConfirmDialog(false)}
-                                className="px-4 py-2 hover:bg-gray-100 border border-transparent font-medium"
+                                className={styles.cancelButton}
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={() => { setShowConfirmDialog(false); executePublish(); }}
-                                className="px-4 py-2 bg-black text-white hover:bg-gray-800 font-medium"
+                                className={styles.confirmButton}
                             >
                                 Publish Now
                             </button>

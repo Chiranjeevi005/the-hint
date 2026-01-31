@@ -10,7 +10,7 @@
  */
 
 import { useState, useMemo } from 'react';
-import { ArticleEntry, WorkspaceMode, SECTIONS } from './types';
+import { ArticleEntry, WorkspaceMode, SECTIONS } from '../types';
 import { ConfirmDialog } from './ConfirmDialog';
 import styles from './ArticleDatabase.module.css';
 

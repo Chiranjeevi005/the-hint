@@ -1,0 +1,116 @@
+/**
+ * Mobile Action Bar Styles
+ * Fixed bottom action bar for mobile devices
+ */
+
+.actionBar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    background: white;
+    border-top: 1px solid var(--color-border, #e5e5e5);
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.08);
+    z-index: 100;
+    /* Safe area inset for devices with home indicators */
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+}
+
+/* Settings Button */
+.settingsButton {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 0.5rem;
+    background: none;
+    border: none;
+    color: var(--color-muted, #666);
+    cursor: pointer;
+    min-width: 56px;
+    min-height: 44px;
+    border-radius: 8px;
+    transition: all 0.15s ease;
+}
+
+.settingsButton:active {
+    background: #f5f5f5;
+    color: var(--color-ink, #1a1a1a);
+}
+
+.buttonLabel {
+    font-family: var(--font-sans);
+    font-size: 0.625rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+/* Actions group */
+.actionsGroup {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Action buttons */
+.actionButton {
+    padding: 0.75rem 1rem;
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    border: 1px solid var(--color-border, #e5e5e5);
+    border-radius: 8px;
+    background: white;
+    color: var(--color-ink, #1a1a1a);
+    cursor: pointer;
+    min-height: 44px;
+    min-width: 70px;
+    transition: all 0.15s ease;
+}
+
+.actionButton:active:not(:disabled) {
+    background: #f5f5f5;
+    transform: scale(0.98);
+}
+
+.actionButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Publish button - emphasized */
+.publishButton {
+    background: var(--color-ink, #1a1a1a);
+    border-color: var(--color-ink, #1a1a1a);
+    color: white;
+}
+
+.publishButton:active:not(:disabled) {
+    background: #333;
+}
+
+.publishButton:disabled {
+    background: #999;
+    border-color: #999;
+    opacity: 1;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Responsive adjustments */
+@media (max-width: 360px) {
+    .actionButton {
+        padding: 0.75rem 0.75rem;
+        font-size: 0.75rem;
+        min-width: 60px;
+    }
+
+    .buttonLabel {
+        font-size: 0.5625rem;
+    }
+}

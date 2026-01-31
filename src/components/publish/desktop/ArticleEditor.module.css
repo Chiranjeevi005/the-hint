@@ -471,6 +471,8 @@
 /* ----------------------------------------------------------------------------
    RESPONSIVE
    ---------------------------------------------------------------------------- */
+
+/* Tablet breakpoint */
 @media (max-width: 900px) {
     .editorLayout {
         grid-template-columns: 1fr;
@@ -496,6 +498,79 @@
 
     .bodyEditor {
         min-height: 300px;
+    }
+}
+
+/* Mobile class - applied via JavaScript for full mobile optimization */
+.editorLayout.mobile {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.mobile .writingCanvas {
+    flex: 1;
+    padding: 1rem;
+    padding-bottom: 1rem;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.mobile .headlineInput {
+    font-size: clamp(1.5rem, 6vw, 2rem);
+    line-height: 1.2;
+}
+
+.mobile .subheadlineInput {
+    font-size: clamp(1rem, 4vw, 1.25rem);
+    line-height: 1.4;
+}
+
+.mobile .bodyEditor {
+    font-size: 1rem;
+    line-height: 1.8;
+    min-height: 200px;
+}
+
+.mobile .editorModeToggle {
+    margin-bottom: 0.5rem;
+}
+
+.mobile .modeButton {
+    padding: 0.625rem 0.875rem;
+    font-size: 0.75rem;
+    min-height: 40px;
+}
+
+/* Mobile breakpoint - CSS media query fallback */
+@media (max-width: 767px) {
+    .editorLayout {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .writingCanvas {
+        padding: 1rem;
+        gap: 1rem;
+    }
+
+    .headlineInput {
+        font-size: 1.5rem;
+    }
+
+    .subheadlineInput {
+        font-size: 1rem;
+    }
+
+    .modeButton {
+        padding: 0.625rem 0.875rem;
+        min-height: 40px;
+    }
+
+    /* Sidebar is hidden on mobile via JS condition */
+    .sidebar {
+        display: none;
     }
 }
 

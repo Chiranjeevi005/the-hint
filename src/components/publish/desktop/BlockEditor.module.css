@@ -507,3 +507,116 @@
 .mediaBlock {
     padding-right: 2.5rem !important;
 }
+
+/* ============================================================================
+   MOBILE RESPONSIVE
+   ============================================================================ */
+
+@media (max-width: 767px) {
+    .blockEditor {
+        border-radius: 8px;
+        min-height: 300px;
+    }
+
+    .editorHeader {
+        padding: 0.5rem 0.75rem;
+    }
+
+    .blocksContainer {
+        padding: 0.75rem;
+        gap: 0.75rem;
+    }
+
+    /* Make insert button more prominent on mobile */
+    .insertButton {
+        padding: 1rem;
+        font-size: 0.9375rem;
+        min-height: 48px;
+        border: 2px dashed #d0d0d0;
+        border-radius: 8px;
+    }
+
+    .insertButton:active {
+        background: #f0f0f0;
+        border-color: #999;
+    }
+
+    /* Insert menu as bottom sheet style on mobile */
+    .insertMenu {
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        top: auto !important;
+        border-radius: 16px 16px 0 0;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+        padding: 0.75rem 0.75rem 1rem;
+        padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+        z-index: 100;
+    }
+
+    .menuOption {
+        padding: 1rem;
+        font-size: 0.9375rem;
+        min-height: 52px;
+        border-radius: 8px;
+    }
+
+    .menuOption:active:not(.disabled) {
+        background: #f0f0f0;
+    }
+
+    /* Block wrapper - always show controls on mobile */
+    .blockWrapper:hover .moveControls,
+    .blockWrapper .moveControls {
+        opacity: 1;
+    }
+
+    /* Larger move controls for touch */
+    .moveControls {
+        position: relative;
+        top: auto;
+        right: auto;
+        transform: none;
+        flex-direction: row;
+        background: transparent;
+        padding: 0.5rem 0;
+        gap: 0.5rem;
+    }
+
+    .moveButton {
+        width: 36px;
+        height: 36px;
+        font-size: 0.875rem;
+    }
+
+    /* Block delete button touch-friendly */
+    .blockDelete {
+        width: 36px;
+        height: 36px;
+        font-size: 1rem;
+    }
+
+    /* Larger block content areas */
+    .paragraphBlock,
+    .subheadingBlock {
+        padding: 0.75rem !important;
+        padding-right: 3rem !important;
+        font-size: 1rem;
+        line-height: 1.75;
+    }
+
+    .quoteBlock {
+        padding: 0.75rem 1rem !important;
+    }
+
+    .mediaBlock {
+        padding: 0.5rem !important;
+    }
+
+    /* Media placeholder touch-friendly */
+    .mediaPlaceholder button {
+        min-height: 48px;
+        font-size: 0.875rem;
+    }
+}

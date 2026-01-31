@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { SubscribeModal } from "../features/SubscribeModal";
 
 /**
@@ -12,6 +13,13 @@ import { SubscribeModal } from "../features/SubscribeModal";
  */
 export function Footer() {
     const [isSubscribeOpen, setIsSubscribeOpen] = useState(false);
+
+    const pathname = usePathname();
+
+    // Hide Footer on editorial console pages
+    if (pathname?.startsWith('/publish') || pathname?.startsWith('/newsroom')) {
+        return null;
+    }
 
     return (
         <>

@@ -165,4 +165,69 @@
         font-size: 0.75rem;
         padding: 0.4rem 0.75rem;
     }
+
+    /* Hide desktop actions on mobile via CSS as a safeguard */
+    .actionGroup .actionButton:not(.logoutAction) {
+        display: none !important;
+    }
+
+    /* Ensure only logout is visible */
+    .logoutAction {
+        margin-left: 0;
+        border-left: none;
+        padding-left: 0.5rem;
+    }
+}
+
+/* Mobile class - applied via JavaScript */
+.toolbar.mobile {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    height: 48px;
+    padding: 0 0.5rem;
+    gap: 0.5rem;
+}
+
+.mobile .navGroup {
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 0;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.mobile .navGroup::-webkit-scrollbar {
+    display: none;
+}
+
+.mobile .navTab {
+    flex-shrink: 0;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.6875rem;
+    white-space: nowrap;
+    min-height: 36px;
+    border-radius: 4px;
+}
+
+.mobile .actionGroup {
+    flex-shrink: 0;
+}
+
+.mobile .actionButton {
+    padding: 0.5rem;
+    min-width: 36px;
+    min-height: 36px;
+    font-size: 0.875rem;
+}
+
+.mobile .logoutAction {
+    padding: 0.5rem 0.75rem;
+}
+
+/* Explicitly hide other actions in mobile mode */
+.mobile .actionGroup .actionButton:not(.logoutAction) {
+    display: none;
 }

@@ -1,0 +1,154 @@
+/**
+ * Mobile Insert Menu Styles
+ * Bottom sheet for block insertion on mobile
+ */
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: flex;
+    align-items: flex-end;
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.menu {
+    width: 100%;
+    background: white;
+    border-radius: 16px 16px 0 0;
+    animation: slideUp 0.3s ease-out;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+    /* Safe area inset for devices with home indicators */
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+    }
+
+    to {
+        transform: translateY(0);
+    }
+}
+
+.header {
+    text-align: center;
+    padding: 1rem 1rem 0.75rem;
+    border-bottom: 1px solid var(--color-border, #e5e5e5);
+    position: relative;
+}
+
+.dragHandle {
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 36px;
+    height: 4px;
+    background: #d0d0d0;
+    border-radius: 2px;
+}
+
+.title {
+    margin: 0;
+    padding-top: 0.5rem;
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-ink, #1a1a1a);
+}
+
+.options {
+    padding: 0.5rem;
+}
+
+.option {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    padding: 1rem;
+    background: none;
+    border: none;
+    border-radius: 12px;
+    text-align: left;
+    cursor: pointer;
+    min-height: 56px;
+    transition: background-color 0.15s ease;
+}
+
+.option:active:not(.disabled) {
+    background: #f5f5f5;
+}
+
+.option.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.optionIcon {
+    font-size: 1.5rem;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f5f5f5;
+    border-radius: 10px;
+}
+
+.optionContent {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+}
+
+.optionLabel {
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--color-ink, #1a1a1a);
+}
+
+.optionReason {
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    color: var(--color-muted, #666);
+}
+
+.cancelButton {
+    display: block;
+    width: calc(100% - 1rem);
+    margin: 0.5rem;
+    padding: 1rem;
+    background: #f5f5f5;
+    border: none;
+    border-radius: 12px;
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-ink, #1a1a1a);
+    cursor: pointer;
+    min-height: 48px;
+    transition: background-color 0.15s ease;
+}
+
+.cancelButton:active {
+    background: #e8e8e8;
+}

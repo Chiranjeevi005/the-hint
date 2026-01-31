@@ -75,6 +75,11 @@ export function Header({ latestUpdate, tickerHeadlines = [] }: HeaderProps) {
 
     const updatedString = latestUpdate ? getUpdatedString(latestUpdate) : "";
 
+    // Hide Header on editorial console pages (they have their own toolbar)
+    if (pathname?.startsWith('/publish') || pathname?.startsWith('/newsroom')) {
+        return null;
+    }
+
     return (
         <>
             <SubscribeModal isOpen={isSubscribeOpen} onClose={() => setIsSubscribeOpen(false)} />

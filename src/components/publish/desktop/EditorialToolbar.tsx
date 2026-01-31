@@ -8,7 +8,7 @@
  * Right group: Actions (Save Draft, Preview, Publish, Logout)
  */
 
-import { WorkspaceMode } from './types';
+import { WorkspaceMode } from '../types';
 import styles from './EditorialToolbar.module.css';
 
 interface EditorialToolbarProps {
@@ -36,6 +36,8 @@ interface EditorialToolbarProps {
     canPublish: boolean;
     /** Current draft ID if editing */
     draftId: string | null;
+    /** Whether in mobile viewport */
+    isMobile?: boolean;
 }
 
 export function EditorialToolbar({
@@ -51,11 +53,12 @@ export function EditorialToolbar({
     isPublishing,
     canPublish,
     draftId,
+    isMobile = false,
 }: EditorialToolbarProps) {
     const isEditorMode = mode === 'editor';
 
     return (
-        <div className={styles.toolbar}>
+        <div className={`${styles.toolbar} ${isMobile ? styles.mobile : ''}`}>
             {/* Left group: Navigation */}
             <div className={styles.navGroup}>
                 <button
@@ -63,14 +66,14 @@ export function EditorialToolbar({
                     className={`${styles.navTab} ${mode === 'editor' ? styles.active : ''}`}
                     onClick={onNewArticle}
                 >
-                    New Article
+                    {isMobile ? 'New' : 'New Article'}
                 </button>
                 <button
                     type="button"
                     className={`${styles.navTab} ${mode === 'all' ? styles.active : ''}`}
                     onClick={() => onModeChange('all')}
                 >
-                    All Articles
+                    {isMobile ? 'All' : 'All Articles'}
                 </button>
                 <button
                     type="button"
@@ -84,20 +87,20 @@ export function EditorialToolbar({
                     className={`${styles.navTab} ${mode === 'published' ? styles.active : ''}`}
                     onClick={() => onModeChange('published')}
                 >
-                    Published
+                    {isMobile ? 'Live' : 'Published'}
                 </button>
             </div>
 
-            {/* Draft indicator */}
-            {draftId && isEditorMode && (
+            {/* Draft indicator - hidden on mobile */}
+            {!isMobile && draftId && isEditorMode && (
                 <span className={styles.draftIndicator}>
                     Draft: {draftId.slice(0, 12)}...
                 </span>
             )}
 
-            {/* Right group: Actions */}
+            {/* Right group: Actions - hidden on mobile (shown in MobileActionBar) */}
             <div className={styles.actionGroup}>
-                {isEditorMode && (
+                {!isMobile && isEditorMode && (
                     <>
                         <button
                             type="button"
@@ -130,7 +133,7 @@ export function EditorialToolbar({
                     className={`${styles.actionButton} ${styles.logoutAction}`}
                     onClick={onLogout}
                 >
-                    Logout
+                    {isMobile ? '⎋' : 'Logout'}
                 </button>
             </div>
         </div>

@@ -6,7 +6,7 @@
  */
 
 import { useEffect } from 'react';
-import { ToastMessage } from './types';
+import { ToastMessage } from '../types';
 import styles from './Toast.module.css';
 
 interface ToastProps {

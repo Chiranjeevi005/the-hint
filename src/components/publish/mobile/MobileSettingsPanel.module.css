@@ -1,0 +1,302 @@
+/**
+ * Mobile Settings Panel Styles
+ * Bottom sheet component for article metadata on mobile
+ */
+
+/* Overlay backdrop */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: flex;
+    align-items: flex-end;
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/* Panel container */
+.panel {
+    width: 100%;
+    max-height: 90vh;
+    background: white;
+    border-radius: 16px 16px 0 0;
+    display: flex;
+    flex-direction: column;
+    animation: slideUp 0.3s ease-out;
+    transition: transform 0.1s ease-out;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+    }
+
+    to {
+        transform: translateY(0);
+    }
+}
+
+/* Panel header */
+.panelHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1rem 0.75rem;
+    border-bottom: 1px solid var(--color-border, #e5e5e5);
+    position: relative;
+}
+
+.dragHandle {
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 36px;
+    height: 4px;
+    background: #d0d0d0;
+    border-radius: 2px;
+}
+
+.panelTitle {
+    font-family: var(--font-sans);
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--color-ink, #1a1a1a);
+    margin: 0;
+    padding-top: 0.5rem;
+}
+
+.closeButton {
+    background: none;
+    border: none;
+    font-size: 1.75rem;
+    color: var(--color-muted, #666);
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    line-height: 1;
+    min-height: 44px;
+    min-width: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.closeButton:active {
+    color: var(--color-ink, #1a1a1a);
+}
+
+/* Panel content */
+.panelContent {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.25rem 1rem 6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Control groups */
+.controlGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.label {
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 600;
+    color: var(--color-muted, #666);
+}
+
+.required {
+    color: #c62828;
+}
+
+.optional {
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+/* Form fields */
+.select,
+.input {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    border: 1px solid var(--color-border, #e5e5e5);
+    border-radius: 8px;
+    background: white;
+    color: var(--color-ink, #1a1a1a);
+    appearance: none;
+    min-height: 48px;
+    /* Touch-friendly target size */
+}
+
+.select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23333' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.75rem center;
+    background-repeat: no-repeat;
+    background-size: 1.25em 1.25em;
+    padding-right: 2.5rem;
+}
+
+.select:focus,
+.input:focus {
+    outline: none;
+    border-color: var(--color-ink, #1a1a1a);
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.05);
+}
+
+.inputError {
+    border-color: #c62828 !important;
+}
+
+.fieldError {
+    font-size: 0.75rem;
+    color: #c62828;
+    font-family: var(--font-sans);
+}
+
+.fieldWarning {
+    font-size: 0.75rem;
+    color: #e65100;
+    font-family: var(--font-sans);
+}
+
+/* Placement selector */
+.placementGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+.placementOption {
+    padding: 1rem;
+    border: 1px solid var(--color-border, #e5e5e5);
+    border-radius: 8px;
+    background: #fafafa;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s ease;
+    min-height: 64px;
+}
+
+.placementOption:active {
+    transform: scale(0.98);
+}
+
+.placementActive {
+    border: 2px solid var(--color-ink, #1a1a1a);
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.placementTitle {
+    font-family: var(--font-sans);
+    font-weight: 700;
+    font-size: 0.8125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-muted, #666);
+    margin-bottom: 0.25rem;
+}
+
+.placementActive .placementTitle {
+    color: var(--color-ink, #1a1a1a);
+}
+
+.placementDesc {
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    color: var(--color-muted, #666);
+}
+
+.placementHint {
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    color: var(--color-muted, #666);
+    margin-top: 0.5rem;
+}
+
+/* Status section */
+.statusSection {
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-border, #e5e5e5);
+}
+
+.statusLabel {
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    color: var(--color-muted, #666);
+    margin-bottom: 0.25rem;
+}
+
+.statusDraft {
+    color: #e65100;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.statusPublished {
+    color: #2e7d32;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.statusDate {
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    color: var(--color-muted, #666);
+}
+
+/* Panel footer */
+.panelFooter {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1rem;
+    background: white;
+    border-top: 1px solid var(--color-border, #e5e5e5);
+    /* Safe area inset for devices with home indicators */
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+.doneButton {
+    width: 100%;
+    padding: 1rem;
+    background: var(--color-ink, #1a1a1a);
+    border: none;
+    border-radius: 8px;
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    min-height: 48px;
+    transition: background-color 0.15s ease;
+}
+
+.doneButton:active {
+    background: #333;
+}

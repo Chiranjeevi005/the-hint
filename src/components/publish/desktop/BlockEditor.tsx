@@ -33,7 +33,7 @@ import {
     MEDIA_LIMITS,
 } from '@/lib/content/media-types';
 import { canInsertMediaAt, isValidBlockOrder } from '@/lib/validation/media';
-import { MediaCounter } from './MediaCounter';
+import { MediaCounter } from '../common/MediaCounter';
 import { ImageBlockEditor } from './ImageBlockEditor';
 import { VideoBlockEditor } from './VideoBlockEditor';
 import type { ImageAspectRatio, VideoProvider } from '@/lib/content/media-types';
