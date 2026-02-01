@@ -145,5 +145,47 @@
     ],
     "lastAttemptAt": "2026-02-01T06:11:05.827Z",
     "totalSubscribers": 4
+  },
+  {
+    "id": "91f99dc0-2292-429c-b25d-50025b5e7bcf",
+    "articleSlug": "rersdfdsfsdfsd",
+    "section": "world-affairs",
+    "headline": "rersdfdsfsdfsd",
+    "summary": "fdfsfsdfsdfdsfsdfdsfds",
+    "contentType": "news",
+    "priority": "normal",
+    "createdAt": "2026-02-01T07:50:24.880Z",
+    "status": "sent",
+    "attempts": 0,
+    "processedCount": 4,
+    "sentEmails": [
+      "bhuvaneshwari9011@gmail.com",
+      "venugopal6362@gmail.com",
+      "chiranjeevi8050@gmail.com",
+      "smartinboxauto@gmail.com"
+    ],
+    "lastAttemptAt": "2026-02-01T07:50:46.850Z",
+    "totalSubscribers": 4
+  },
+  {
+    "id": "8f16af1f-1ffa-4c01-b39e-b6de5dc45836",
+    "articleSlug": "rersdfdsfsdfsdsd",
+    "section": "world-affairs",
+    "headline": "rersdfdsfsdfsdsd",
+    "summary": "fdfsfsdfsdfdsfsdfdsfds",
+    "contentType": "news",
+    "priority": "normal",
+    "createdAt": "2026-02-01T07:54:55.091Z",
+    "status": "sent",
+    "attempts": 0,
+    "processedCount": 4,
+    "sentEmails": [
+      "bhuvaneshwari9011@gmail.com",
+      "venugopal6362@gmail.com",
+      "chiranjeevi8050@gmail.com",
+      "smartinboxauto@gmail.com"
+    ],
+    "lastAttemptAt": "2026-02-01T07:55:17.970Z",
+    "totalSubscribers": 4
   }
 ]

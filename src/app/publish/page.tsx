@@ -508,7 +508,9 @@ export default function PublishPage() {
     return (
         <div className={`${styles.page} ${isMobile ? styles.mobile : ''}`}>
             {/* Toast Notifications */}
-            <EditorialToast toast={toast} onDismiss={() => setToast(null)} />
+            <div style={{ position: 'fixed', top: '24px', left: '50%', transform: 'translateX(-50%)', zIndex: 10000 }}>
+                <EditorialToast toast={toast} onDismiss={() => setToast(null)} />
+            </div>
 
             {/* Editorial Toolbar - Full on desktop, simplified on mobile */}
             <EditorialToolbar

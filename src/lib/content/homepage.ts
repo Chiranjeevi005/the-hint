@@ -64,21 +64,24 @@ function isPlacement(article: Article, placement: 'lead' | 'top'): boolean {
  * Sort articles by publishedAt descending (newest first)
  * Returns a new sorted array, does not mutate input
  */
+/**
+ * Sort articles by date descending (newest first).
+ * Uses 'updatedAt' if available, otherwise 'publishedAt'.
+ * Returns a new sorted array, does not mutate input.
+ */
 function sortByPublishedAtDesc(articles: Article[]): Article[] {
     return [...articles].sort((a, b) => {
-        const dateA = new Date(a.publishedAt).getTime();
-        const dateB = new Date(b.publishedAt).getTime();
+        const dateA = new Date(a.updatedAt || a.publishedAt).getTime();
+        const dateB = new Date(b.updatedAt || b.publishedAt).getTime();
 
         // Validate dates
         if (isNaN(dateA)) {
-            throw new Error(
-                `Invalid publishedAt date for article "${a.id}": "${a.publishedAt}"`
-            );
+            console.warn(`Invalid date for article "${a.id}"`);
+            return 1; // Push invalid dates to the end
         }
         if (isNaN(dateB)) {
-            throw new Error(
-                `Invalid publishedAt date for article "${b.id}": "${b.publishedAt}"`
-            );
+            console.warn(`Invalid date for article "${b.id}"`);
+            return -1;
         }
 
         return dateB - dateA;

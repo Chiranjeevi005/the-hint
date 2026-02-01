@@ -14,11 +14,13 @@ import {
     InvalidArticleSectionError,
     InvalidSlugError,
 } from '@/lib/content/article';
+import { getContinueReadingArticles } from '@/lib/content/recommendations';
 import {
     ArticleHeader,
     ArticleBody,
     SourcesList,
     CorrectionNotice,
+    ContinueReading,
 } from '@/components/article';
 
 interface ArticlePageProps {
@@ -50,14 +52,17 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
     const { article } = articleData;
 
+    // Get recommendations
+    const recommendations = getContinueReadingArticles(article);
+
     // Prepare section label (format slug to display name)
     const sectionLabel = article.section
         .replace('-', ' ')
         .replace(/\b\w/g, (c) => c.toUpperCase());
 
     return (
-        <main className="px-6 py-12 max-w-[1200px] mx-auto">
-            <article>
+        <main className="w-full bg-white">
+            <article className="px-6 py-12 max-w-[1200px] mx-auto">
                 {/* Article Header (Section, Title, Subtitle, Meta, HR) */}
                 <div className="max-w-4xl mx-auto">
                     <ArticleHeader
@@ -113,6 +118,11 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                     </div>
                 </div>
             </article>
+
+            {/* Continue Reading Section - Full Width */}
+            {recommendations.length > 0 && (
+                <ContinueReading items={recommendations} />
+            )}
         </main>
     );
 }
