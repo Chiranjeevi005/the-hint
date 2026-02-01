@@ -1,0 +1,79 @@
+/**
+ * Editorial Skeleton Styles
+ * 
+ * Simple, static gray placeholders that match newspaper print layout.
+ * 
+ * DESIGN RULES (strictly enforced):
+ * ✓ Static gray blocks only (#E5E5E5 base, #D0D0D0 headlines)
+ * ✓ 2-4px rounded corners maximum
+ * ✓ Subtle opacity fade-in (<200ms)
+ * ❌ No shimmer animations
+ * ❌ No gradients
+ * ❌ No spinners
+ * ❌ No bouncing/pulsing effects
+ */
+
+/* Base skeleton block - static gray rectangle */
+.block {
+    background-color: #E5E5E5;
+    border-radius: 2px;
+    animation: fadeIn 150ms ease-out;
+}
+
+/* Darker gray for headlines to show hierarchy */
+.headline {
+    background-color: #D0D0D0;
+    border-radius: 3px;
+}
+
+/* Extra large headline style */
+.headlineXl {
+    border-radius: 4px;
+}
+
+/* Image placeholder - slightly darker */
+.imagePlaceholder {
+    background-color: #E0E0E0;
+    border-radius: 2px;
+    animation: fadeIn 150ms ease-out;
+}
+
+/* Avatar placeholder for opinion section */
+.avatarPlaceholder {
+    background-color: #E0E0E0;
+    animation: fadeIn 150ms ease-out;
+}
+
+/* Slow loading hint text */
+.slowHint {
+    text-align: center;
+    padding: 2rem;
+    color: #8A8A8A;
+    font-size: 14px;
+    font-family: var(--font-sans, system-ui, sans-serif);
+    font-style: italic;
+}
+
+/* Screen reader only - accessible loading announcement */
+.srOnly {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Simple fade-in animation - ONLY animation allowed */
+@keyframes fadeIn {
+    from {
+        opacity: 0.3;
+    }
+
+    to {
+        opacity: 1;
+    }
+}

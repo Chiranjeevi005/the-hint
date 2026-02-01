@@ -2,6 +2,7 @@
 
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
+import { SkeletonBlock } from '@/components/skeleton';
 
 function UnsubscribeContent() {
     const searchParams = useSearchParams();
@@ -126,8 +127,31 @@ export default function UnsubscribePage() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 backgroundColor: '#f5f5f5',
+                padding: '20px',
             }}>
-                <p>Loading...</p>
+                <div style={{
+                    maxWidth: '500px',
+                    backgroundColor: '#ffffff',
+                    padding: '40px',
+                    textAlign: 'center',
+                    border: '1px solid #e5e5e5',
+                }} aria-hidden="true">
+                    {/* Masthead skeleton */}
+                    <SkeletonBlock width="160px" height="32px" isHeadline style={{ margin: '0 auto 30px' }} />
+
+                    {/* Heading skeleton */}
+                    <SkeletonBlock width="140px" height="24px" isHeadline style={{ margin: '0 auto 15px' }} />
+
+                    {/* Body text skeleton */}
+                    <SkeletonBlock width="280px" height="16px" style={{ margin: '0 auto 8px' }} />
+                    <SkeletonBlock width="200px" height="16px" style={{ margin: '0 auto 30px' }} />
+
+                    {/* Button skeleton */}
+                    <SkeletonBlock width="200px" height="48px" style={{ margin: '0 auto' }} />
+                </div>
+                <span className="sr-only" role="status" aria-live="polite">
+                    Content loading
+                </span>
             </main>
         }>
             <UnsubscribeContent />

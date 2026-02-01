@@ -82,5 +82,26 @@
     ],
     "lastAttemptAt": "2026-01-31T14:22:56.099Z",
     "totalSubscribers": 4
+  },
+  {
+    "id": "f3380dde-7473-461c-a826-1328a1531f05",
+    "articleSlug": "rersdfdsfsdfsd",
+    "section": "world-affairs",
+    "headline": "rersdfdsfsdfsd",
+    "summary": "fdfsfsdfsdfdsfsdfdsfds",
+    "contentType": "news",
+    "priority": "normal",
+    "createdAt": "2026-02-01T05:33:00.602Z",
+    "status": "sent",
+    "attempts": 0,
+    "processedCount": 4,
+    "sentEmails": [
+      "bhuvaneshwari9011@gmail.com",
+      "venugopal6362@gmail.com",
+      "chiranjeevi8050@gmail.com",
+      "smartinboxauto@gmail.com"
+    ],
+    "lastAttemptAt": "2026-02-01T05:33:25.813Z",
+    "totalSubscribers": 4
   }
 ]

@@ -12,6 +12,7 @@
 import { useState, useMemo } from 'react';
 import { ArticleEntry, WorkspaceMode, SECTIONS } from '../types';
 import { ConfirmDialog } from './ConfirmDialog';
+import { ArticleDatabaseSkeleton } from '@/components/skeleton';
 import styles from './ArticleDatabase.module.css';
 
 interface ArticleDatabaseProps {
@@ -185,7 +186,7 @@ export function ArticleDatabase({
             {/* Table */}
             <div className={styles.tableContainer}>
                 {isLoading ? (
-                    <div className={styles.loading}>Loading articles...</div>
+                    <ArticleDatabaseSkeleton />
                 ) : filteredArticles.length === 0 ? (
                     <div className={styles.empty}>
                         {searchQuery || sectionFilter !== 'all'

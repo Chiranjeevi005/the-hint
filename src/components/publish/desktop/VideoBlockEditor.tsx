@@ -261,7 +261,7 @@ export function VideoBlockEditor({
                                     onClick={handleFetchVideo}
                                     disabled={isFetching || !url.trim()}
                                 >
-                                    {isFetching ? 'Loading...' : 'Fetch'}
+                                    {isFetching ? 'Fetching…' : 'Fetch'}
                                 </button>
                             </div>
                             <span className={styles.hint}>

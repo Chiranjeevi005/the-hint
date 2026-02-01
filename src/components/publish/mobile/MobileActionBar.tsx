@@ -85,7 +85,7 @@ export function MobileActionBar({
                     onClick={onPreview}
                     disabled={isPreviewLoading}
                 >
-                    {isPreviewLoading ? 'Loading…' : 'Preview'}
+                    {isPreviewLoading ? 'Preparing…' : 'Preview'}
                 </button>
 
                 {/* Publish */}

@@ -4,6 +4,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ErrorCodes, getErrorMessage, logger } from '@/lib/feedback';
+import { SkeletonBlock } from '@/components/skeleton';
 
 function getUrlErrorMessage(error: string): string {
     const errorMap: Record<string, string> = {
@@ -373,14 +374,43 @@ function LoginForm() {
 export default function LoginPage() {
     return (
         <Suspense fallback={
-            <div style={{
-                minHeight: '100vh',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: '#f8f7f4'
-            }}>
-                Loading...
+            <div className="page">
+                <div className="container" aria-hidden="true">
+                    {/* Masthead skeleton */}
+                    <div className="header">
+                        <SkeletonBlock width="140px" height="28px" isHeadline style={{ margin: '0 auto', marginBottom: '16px' }} />
+                        <span className="divider" style={{ opacity: 0.3 }}></span>
+                        <SkeletonBlock width="80px" height="13px" style={{ margin: '0 auto' }} />
+                    </div>
+
+                    {/* Card skeleton */}
+                    <div className="card">
+                        {/* Title skeleton */}
+                        <div style={{ marginBottom: '8px' }}>
+                            <SkeletonBlock width="80px" height="24px" isHeadline />
+                        </div>
+                        {/* Desc skeleton */}
+                        <div style={{ marginBottom: '28px' }}>
+                            <SkeletonBlock width="200px" height="14px" />
+                        </div>
+
+                        {/* Input skeleton */}
+                        <div style={{ marginBottom: '20px' }}>
+                            <SkeletonBlock width="100%" height="48px" />
+                        </div>
+
+                        {/* Button skeleton */}
+                        <SkeletonBlock width="100%" height="48px" />
+
+                        {/* Secure text skeleton */}
+                        <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center' }}>
+                            <SkeletonBlock width="120px" height="12px" />
+                        </div>
+                    </div>
+                </div>
+                <span className="sr-only" role="status" aria-live="polite">
+                    Content loading
+                </span>
             </div>
         }>
             <LoginForm />

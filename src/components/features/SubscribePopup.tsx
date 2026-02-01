@@ -244,7 +244,7 @@ export function SubscribePopup() {
                                     disabled={status === "loading"}
                                     className="w-full bg-[#111] text-white font-sans font-bold uppercase tracking-widest text-xs py-3.5 rounded hover:bg-[#333] transition-colors disabled:opacity-50"
                                 >
-                                    {status === "loading" ? "Processing..." : "Subscribe"}
+                                    {status === "loading" ? "Subscribing…" : "Subscribe"}
                                 </button>
                             </>
                         )}

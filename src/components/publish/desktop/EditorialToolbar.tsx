@@ -116,7 +116,7 @@ export function EditorialToolbar({
                             onClick={onPreview}
                             disabled={isPreviewLoading}
                         >
-                            {isPreviewLoading ? 'Loading...' : 'Preview'}
+                            {isPreviewLoading ? 'Preparing preview…' : 'Preview'}
                         </button>
                         <button
                             type="button"
