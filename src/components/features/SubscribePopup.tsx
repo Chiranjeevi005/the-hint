@@ -2,10 +2,16 @@
 
 import { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
+import {
+    ErrorCodes,
+    SuccessCodes,
+    getErrorMessage,
+    getSuccessMessage,
+    logger,
+} from '@/lib/feedback';
 
 const STORAGE_KEY_DISMISSED = "thehint-subscribe-dismissed";
 const STORAGE_KEY_SUBSCRIBED = "thehint-subscribe-completed";
-
 export function SubscribePopup() {
     const [isOpen, setIsOpen] = useState(false);
     const [email, setEmail] = useState("");
@@ -121,7 +127,7 @@ export function SubscribePopup() {
 
             if (res.ok && data.success) {
                 setStatus("success");
-                setMessage("Thanks for subscribing. You'll hear from us soon.");
+                setMessage(getSuccessMessage(SuccessCodes.SUBSCRIPTION_SUCCESS).message);
                 // Mark as subscribed permanently - popup will never show again
                 localStorage.setItem(STORAGE_KEY_SUBSCRIBED, "true");
                 setTimeout(() => {
@@ -129,11 +135,16 @@ export function SubscribePopup() {
                 }, 3000);
             } else {
                 setStatus("error");
-                setMessage(data.error || "Please check your email.");
+                // Use editorial translation for error
+                const errorMsg = data.error?.includes('already')
+                    ? getErrorMessage(ErrorCodes.SUBSCRIPTION_ALREADY_EXISTS).message
+                    : getErrorMessage(ErrorCodes.SUBSCRIPTION_INVALID_EMAIL).message;
+                setMessage(errorMsg);
             }
         } catch (error) {
+            logger.error('Subscription failed', error);
             setStatus("error");
-            setMessage("Connection failed. Please try again.");
+            setMessage(getErrorMessage(ErrorCodes.NETWORK_REQUEST_FAILED).message);
         }
     };
 

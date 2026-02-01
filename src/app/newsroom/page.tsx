@@ -3,25 +3,49 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { ErrorCodes, getErrorMessage, logger } from '@/lib/feedback';
+
+function getUrlErrorMessage(error: string): string {
+    const errorMap: Record<string, string> = {
+        'expired': 'Link expired. Request a new one.',
+        'invalid': 'Invalid link. Request a new one.',
+        'used': 'Link already used. Request a new one.',
+        'unauthorized': 'Access denied.',
+    };
+    return errorMap[error.toLowerCase()] || error;
+}
 
 function LoginForm() {
     const [email, setEmail] = useState('');
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [message, setMessage] = useState('');
+    const [isEmailValid, setIsEmailValid] = useState(true);
 
     const searchParams = useSearchParams();
 
-    // Check for error in URL on mount
     useEffect(() => {
         const error = searchParams.get('error');
         if (error) {
             setStatus('error');
-            setMessage(decodeURIComponent(error));
+            setMessage(getUrlErrorMessage(decodeURIComponent(error)));
         }
     }, [searchParams]);
 
+    const validateEmail = (value: string) => {
+        const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+        setIsEmailValid(value === '' || valid);
+        return valid;
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (!validateEmail(email)) {
+            setStatus('error');
+            setMessage(getErrorMessage(ErrorCodes.VALIDATION_INVALID_EMAIL).message);
+            return;
+        }
+
         setStatus('loading');
         setMessage('');
 
@@ -35,75 +59,331 @@ function LoginForm() {
             const data = await res.json();
 
             if (!res.ok) {
-                throw new Error(data.error || 'Something went wrong');
+                throw new Error(data.error || 'Request failed. Try again.');
             }
 
             setStatus('success');
-            setMessage(data.message || 'Check your email for the magic link.');
-        } catch (err: any) {
+            setMessage('Check your inbox for the sign-in link.');
+        } catch (err) {
+            logger.error('Login request failed', err);
             setStatus('error');
-            setMessage(err.message);
+            setMessage(getErrorMessage(ErrorCodes.NETWORK_REQUEST_FAILED).message);
         }
     };
 
     return (
-        <div className="w-full max-w-md bg-white p-8 border hover:shadow-sm transition-shadow duration-200">
-            <h1 className="text-2xl font-bold mb-6 text-center tracking-tight text-neutral-900 border-b pb-4">
-                The Hint <span className="font-normal text-neutral-500 text-lg ml-2">Editor</span>
-            </h1>
+        <main className="page">
+            <div className="container">
+                {/* Masthead */}
+                <header className="header">
+                    <h1 className="logo">THE HINT</h1>
+                    <span className="divider"></span>
+                    <p className="subtitle">Newsroom</p>
+                </header>
 
-            {status === 'success' ? (
-                <div className="text-center py-8">
-                    <div className="text-green-800 bg-green-50 p-4 rounded mb-4 text-sm border border-green-100">
-                        {message}
-                    </div>
-                    <p className="text-sm text-neutral-500">
-                        You can close this tab.
-                    </p>
-                </div>
-            ) : (
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div>
-                        <label htmlFor="email" className="block text-sm font-medium text-neutral-700 mb-2 uppercase tracking-wide text-xs">
-                            Email Address
-                        </label>
-                        <input
-                            id="email"
-                            type="email"
-                            required
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="w-full px-3 py-2 border border-neutral-300 focus:outline-none focus:border-neutral-900 transition-colors font-sans text-sm"
-                            placeholder="editor@example.com"
-                            disabled={status === 'loading'}
-                        />
-                    </div>
-
-                    {status === 'error' && (
-                        <div className="text-red-700 text-sm bg-red-50 p-3 border border-red-100">
-                            {message}
+                {/* Card */}
+                <div className="card">
+                    {status === 'success' ? (
+                        <div className="success">
+                            <div className="success-check">✓</div>
+                            <h2>Check your email</h2>
+                            <p className="success-text">{message}</p>
+                            <p className="success-note">Link expires in 30 minutes</p>
+                            <button
+                                onClick={() => { setStatus('idle'); setEmail(''); }}
+                                className="link-btn"
+                            >
+                                ← Try different email
+                            </button>
                         </div>
-                    )}
+                    ) : (
+                        <>
+                            <h2 className="title">Sign in</h2>
+                            <p className="desc">Enter your email to receive a secure link</p>
 
-                    <button
-                        type="submit"
-                        disabled={status === 'loading'}
-                        className="w-full bg-neutral-900 text-white py-2 px-4 hover:bg-neutral-800 transition-colors disabled:opacity-50 text-sm font-medium uppercase tracking-wide"
-                    >
-                        {status === 'loading' ? 'Sending...' : 'Send Link'}
-                    </button>
-                </form>
-            )}
-        </div>
+                            <form onSubmit={handleSubmit}>
+                                <div className="field">
+                                    <input
+                                        id="email"
+                                        type="email"
+                                        required
+                                        value={email}
+                                        onChange={(e) => {
+                                            setEmail(e.target.value);
+                                            if (status === 'error') { setStatus('idle'); setMessage(''); }
+                                            validateEmail(e.target.value);
+                                        }}
+                                        className={`input ${!isEmailValid || status === 'error' ? 'input-error' : ''}`}
+                                        placeholder="you@example.com"
+                                        disabled={status === 'loading'}
+                                        autoComplete="email"
+                                        autoFocus
+                                    />
+                                    {!isEmailValid && email && (
+                                        <span className="error-text">Enter a valid email</span>
+                                    )}
+                                </div>
+
+                                {status === 'error' && (
+                                    <div className="error-box">{message}</div>
+                                )}
+
+                                <button
+                                    type="submit"
+                                    disabled={status === 'loading' || !email || !isEmailValid}
+                                    className="btn"
+                                >
+                                    {status === 'loading' ? 'Sending...' : 'Send Link'}
+                                </button>
+                            </form>
+
+                            <p className="secure">🔒 Passwordless authentication</p>
+                        </>
+                    )}
+                </div>
+
+                {/* Footer */}
+                <footer className="footer">
+                    <p>Authorized access only</p>
+                </footer>
+            </div>
+
+            <style jsx>{`
+                .page {
+                    min-height: 100vh;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background: #f8f7f4;
+                    padding: 24px;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                }
+
+                .container {
+                    width: 100%;
+                    max-width: 400px;
+                    text-align: center;
+                }
+
+                .header {
+                    margin-bottom: 32px;
+                }
+
+                .logo {
+                    font-family: Georgia, 'Times New Roman', serif;
+                    font-size: 28px;
+                    font-weight: 700;
+                    letter-spacing: 0.15em;
+                    color: #111;
+                    margin: 0;
+                }
+
+                .divider {
+                    display: block;
+                    width: 40px;
+                    height: 2px;
+                    background: #111;
+                    margin: 16px auto;
+                }
+
+                .subtitle {
+                    font-size: 13px;
+                    letter-spacing: 0.2em;
+                    text-transform: uppercase;
+                    color: #666;
+                    margin: 0;
+                }
+
+                .card {
+                    background: #fff;
+                    border: 1px solid #e5e5e5;
+                    padding: 40px 36px;
+                    text-align: left;
+                }
+
+                .title {
+                    font-family: Georgia, serif;
+                    font-size: 24px;
+                    font-weight: 400;
+                    color: #111;
+                    margin: 0 0 8px 0;
+                }
+
+                .desc {
+                    font-size: 14px;
+                    color: #666;
+                    margin: 0 0 28px 0;
+                }
+
+                .field {
+                    margin-bottom: 20px;
+                }
+
+                .input {
+                    width: 100%;
+                    padding: 14px 16px;
+                    font-size: 15px;
+                    border: 1px solid #ddd;
+                    background: #fafafa;
+                    outline: none;
+                    transition: border-color 0.15s, background 0.15s;
+                }
+
+                .input:focus {
+                    border-color: #111;
+                    background: #fff;
+                }
+
+                .input::placeholder {
+                    color: #999;
+                }
+
+                .input:disabled {
+                    opacity: 0.6;
+                }
+
+                .input-error {
+                    border-color: #e53935;
+                    background: #fff5f5;
+                }
+
+                .error-text {
+                    display: block;
+                    font-size: 12px;
+                    color: #e53935;
+                    margin-top: 6px;
+                }
+
+                .error-box {
+                    background: #fff5f5;
+                    border: 1px solid #ffcdd2;
+                    color: #c62828;
+                    font-size: 13px;
+                    padding: 12px 14px;
+                    margin-bottom: 20px;
+                }
+
+                .btn {
+                    width: 100%;
+                    padding: 14px;
+                    background: #111;
+                    color: #fff;
+                    font-size: 14px;
+                    font-weight: 500;
+                    border: none;
+                    cursor: pointer;
+                    transition: background 0.15s;
+                }
+
+                .btn:hover:not(:disabled) {
+                    background: #333;
+                }
+
+                .btn:disabled {
+                    opacity: 0.5;
+                    cursor: not-allowed;
+                }
+
+                .secure {
+                    text-align: center;
+                    font-size: 12px;
+                    color: #999;
+                    margin: 20px 0 0 0;
+                }
+
+                /* Success */
+                .success {
+                    text-align: center;
+                    padding: 16px 0;
+                }
+
+                .success-check {
+                    width: 48px;
+                    height: 48px;
+                    background: #2e7d32;
+                    color: #fff;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 24px;
+                    margin: 0 auto 20px auto;
+                }
+
+                .success h2 {
+                    font-family: Georgia, serif;
+                    font-size: 22px;
+                    font-weight: 400;
+                    color: #111;
+                    margin: 0 0 8px 0;
+                }
+
+                .success-text {
+                    font-size: 14px;
+                    color: #444;
+                    margin: 0 0 6px 0;
+                }
+
+                .success-note {
+                    font-size: 12px;
+                    color: #888;
+                    margin: 0 0 24px 0;
+                }
+
+                .link-btn {
+                    background: none;
+                    border: 1px solid #ddd;
+                    color: #666;
+                    font-size: 13px;
+                    padding: 10px 20px;
+                    cursor: pointer;
+                    transition: all 0.15s;
+                }
+
+                .link-btn:hover {
+                    border-color: #111;
+                    color: #111;
+                }
+
+                .footer {
+                    margin-top: 32px;
+                }
+
+                .footer p {
+                    font-size: 11px;
+                    letter-spacing: 0.1em;
+                    text-transform: uppercase;
+                    color: #aaa;
+                    margin: 0;
+                }
+
+                @media (max-width: 480px) {
+                    .card {
+                        padding: 32px 24px;
+                    }
+                    .logo {
+                        font-size: 24px;
+                    }
+                }
+            `}</style>
+        </main>
     );
 }
 
 export default function LoginPage() {
     return (
-        <main className="min-h-screen flex items-center justify-center bg-[#F5F5F0] p-4 font-serif">
-            <Suspense fallback={<div className="text-neutral-500">Loading...</div>}>
-                <LoginForm />
-            </Suspense>
-        </main>
+        <Suspense fallback={
+            <div style={{
+                minHeight: '100vh',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: '#f8f7f4'
+            }}>
+                Loading...
+            </div>
+        }>
+            <LoginForm />
+        </Suspense>
     );
 }

@@ -21,18 +21,26 @@ import {
     EditorialToolbar,
     ArticleEditor,
     ArticleDatabase,
-    Toast,
     MobileSettingsPanel,
     MobileActionBar,
     ArticleFormData,
     ArticleEntry,
     WorkspaceMode,
     FieldErrors,
-    ToastMessage,
     PreviewData,
     ApiResponse,
     INITIAL_FORM_DATA,
 } from '@/components/publish';
+import { EditorialToast, type ToastData } from '@/components/feedback';
+import {
+    ErrorCodes,
+    SuccessCodes,
+    transformApiErrors,
+    getFirstError,
+    getErrorMessage,
+    getSuccessMessage,
+    logger,
+} from '@/lib/feedback';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import styles from './page.module.css';
 
@@ -87,7 +95,7 @@ export default function PublishPage() {
     const [previewData, setPreviewData] = useState<PreviewData | null>(null);
 
     // Toast notifications
-    const [toast, setToast] = useState<ToastMessage | null>(null);
+    const [toast, setToast] = useState<ToastData | null>(null);
 
     // Mobile state
     const isMobile = useIsMobile();
@@ -97,16 +105,43 @@ export default function PublishPage() {
     const clientHints = getClientHints(formData);
 
     /**
-     * Show toast notification
+     * Generate unique toast ID
      */
-    const showToast = useCallback((type: 'success' | 'error', message: string, link?: { url: string; label: string }) => {
+    const generateToastId = () => `toast-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+
+    /**
+     * Show toast notification (editorial style)
+     */
+    const showToast = useCallback((type: 'success' | 'error' | 'warning' | 'info', message: string, options?: { guidance?: string; link?: { url: string; label: string } }) => {
         setToast({
-            id: Date.now().toString(),
+            id: generateToastId(),
             type,
             message,
-            link,
+            guidance: options?.guidance,
+            link: options?.link,
+            timeout: type === 'error' ? 6000 : 4000,
         });
     }, []);
+
+    /**
+     * Show error from error code (uses translation system)
+     */
+    const showErrorFromCode = useCallback((code: typeof ErrorCodes[keyof typeof ErrorCodes]) => {
+        const translation = getErrorMessage(code);
+        showToast(
+            translation.severity === 'warning' ? 'warning' : 'error',
+            translation.message,
+            { guidance: translation.guidance }
+        );
+    }, [showToast]);
+
+    /**
+     * Show success from success code (uses translation system)
+     */
+    const showSuccessFromCode = useCallback((code: typeof SuccessCodes[keyof typeof SuccessCodes], link?: { url: string; label: string }) => {
+        const translation = getSuccessMessage(code);
+        showToast('success', translation.message, { link });
+    }, [showToast]);
 
     /**
      * Build API payload from form data
@@ -131,14 +166,22 @@ export default function PublishPage() {
     }, [formData]);
 
     /**
-     * Parse field errors from API response
+     * Parse field errors from API response (with editorial translation)
      */
     const parseFieldErrors = useCallback((errors?: { field: string; message: string }[]): FieldErrors => {
         if (!errors) return {};
+
+        // Use the editorial translation system
+        const transformed = transformApiErrors(errors);
         const result: FieldErrors = {};
-        for (const error of errors) {
+
+        for (const error of transformed) {
             result[error.field] = error.message;
         }
+
+        // Log original errors for debugging (development only)
+        logger.debug('Field errors transformed', { original: errors, translated: result });
+
         return result;
     }, []);
 
@@ -155,14 +198,15 @@ export default function PublishPage() {
             if (result.success && result.data?.articles) {
                 setArticles(result.data.articles as ArticleEntry[]);
             } else {
-                showToast('error', result.error || 'Failed to load articles');
+                showErrorFromCode(ErrorCodes.SERVER_INTERNAL_ERROR);
             }
-        } catch {
-            showToast('error', 'Network error while loading articles');
+        } catch (error) {
+            logger.error('Fetch articles failed', error);
+            showErrorFromCode(ErrorCodes.NETWORK_REQUEST_FAILED);
         } finally {
             setIsLoadingArticles(false);
         }
-    }, [showToast]);
+    }, [showErrorFromCode]);
 
     /**
      * Load articles when switching to database mode
@@ -232,19 +276,24 @@ export default function PublishPage() {
 
             if (result.success && result.data?.draftId) {
                 setFormData(prev => ({ ...prev, draftId: result.data!.draftId! }));
-                showToast('success', 'Draft saved successfully');
+                showSuccessFromCode(SuccessCodes.DRAFT_SAVED);
             } else if (!result.success && result.errors?.length) {
                 setFieldErrors(parseFieldErrors(result.errors));
-                showToast('error', result.errors[0].message);
+                // Get first error and show as toast with editorial message
+                const firstError = getFirstError(transformApiErrors(result.errors));
+                if (firstError) {
+                    showToast('error', firstError.message);
+                }
             } else {
-                showToast('error', result.error || 'Failed to save draft');
+                showErrorFromCode(ErrorCodes.CONTENT_SAVE_FAILED);
             }
-        } catch {
-            showToast('error', 'Network error while saving draft');
+        } catch (error) {
+            logger.error('Draft save failed', error);
+            showErrorFromCode(ErrorCodes.NETWORK_REQUEST_FAILED);
         } finally {
             setIsSaving(false);
         }
-    }, [buildPayload, parseFieldErrors, showToast]);
+    }, [buildPayload, parseFieldErrors, showToast, showSuccessFromCode, showErrorFromCode]);
 
     /**
      * Preview
@@ -265,15 +314,17 @@ export default function PublishPage() {
             if (result.success && result.data?.preview) {
                 setPreviewData(result.data.preview);
                 setShowPreview(true);
+                showSuccessFromCode(SuccessCodes.PREVIEW_READY);
             } else {
-                showToast('error', result.error || 'Failed to generate preview');
+                showErrorFromCode(ErrorCodes.SERVER_INTERNAL_ERROR);
             }
-        } catch {
-            showToast('error', 'Network error while generating preview');
+        } catch (error) {
+            logger.error('Preview generation failed', error);
+            showErrorFromCode(ErrorCodes.NETWORK_REQUEST_FAILED);
         } finally {
             setIsPreviewLoading(false);
         }
-    }, [buildPayload, showToast]);
+    }, [buildPayload, showSuccessFromCode, showErrorFromCode]);
 
     /**
      * Execute Publish (after confirmation)
@@ -295,30 +346,34 @@ export default function PublishPage() {
             if (result.success) {
                 setFormData(INITIAL_FORM_DATA);
                 setShowPreview(false);
-                showToast(
-                    'success',
-                    'Article published successfully',
+                showSuccessFromCode(
+                    SuccessCodes.ARTICLE_PUBLISHED,
                     result.data?.url ? { url: result.data.url, label: 'View Article' } : undefined
                 );
             } else if (result.errors?.length) {
                 setFieldErrors(parseFieldErrors(result.errors));
-                showToast('error', result.errors[0].message);
+                // Get first error and show as toast
+                const firstError = getFirstError(transformApiErrors(result.errors));
+                if (firstError) {
+                    showToast('error', firstError.message);
+                }
             } else {
-                showToast('error', result.error || 'Failed to publish article');
+                showErrorFromCode(ErrorCodes.CONTENT_SAVE_FAILED);
             }
-        } catch {
-            showToast('error', 'Network error while publishing');
+        } catch (error) {
+            logger.error('Publish failed', error);
+            showErrorFromCode(ErrorCodes.NETWORK_REQUEST_FAILED);
         } finally {
             setIsPublishing(false);
         }
-    }, [buildPayload, parseFieldErrors, showToast]);
+    }, [buildPayload, parseFieldErrors, showToast, showSuccessFromCode, showErrorFromCode]);
 
     /**
      * Handle Publish Click
      */
     const handlePublish = useCallback(() => {
         if (!canPublish(formData)) {
-            showToast('error', 'Cannot publish: Missing headline, subheadline, section, or body content.');
+            showToast('warning', 'Complete required fields to publish.');
             return;
         }
         setShowConfirmDialog(true);
@@ -332,7 +387,7 @@ export default function PublishPage() {
             await fetch('/api/auth/logout', { method: 'POST' });
             window.location.href = '/newsroom';
         } catch (error) {
-            console.error('Logout failed', error);
+            logger.error('Logout failed', error);
         }
     }, []);
 
@@ -365,17 +420,18 @@ export default function PublishPage() {
             const result: ApiResponse = await response.json();
 
             if (result.success) {
-                showToast('success', `Created: "${result.data?.headline}"`);
+                showToast('success', `Created a copy of "${result.data?.headline}"`);
                 // Refresh articles list
                 const filter = mode === 'drafts' ? 'drafts' : mode === 'published' ? 'published' : undefined;
                 fetchArticles(filter);
             } else {
-                showToast('error', result.error || 'Failed to duplicate article');
+                showErrorFromCode(ErrorCodes.CONTENT_SAVE_FAILED);
             }
-        } catch {
-            showToast('error', 'Network error while duplicating');
+        } catch (error) {
+            logger.error('Duplicate failed', error);
+            showErrorFromCode(ErrorCodes.NETWORK_REQUEST_FAILED);
         }
-    }, [mode, fetchArticles, showToast]);
+    }, [mode, fetchArticles, showToast, showErrorFromCode]);
 
     /**
      * Remove Placement
@@ -398,16 +454,17 @@ export default function PublishPage() {
             const result: ApiResponse = await response.json();
 
             if (result.success) {
-                showToast('success', 'Placement removed');
+                showToast('success', 'Placement updated');
                 const filter = mode === 'drafts' ? 'drafts' : mode === 'published' ? 'published' : undefined;
                 fetchArticles(filter);
             } else {
-                showToast('error', result.error || 'Failed to update placement');
+                showErrorFromCode(ErrorCodes.CONTENT_SAVE_FAILED);
             }
-        } catch {
-            showToast('error', 'Network error');
+        } catch (error) {
+            logger.error('Remove placement failed', error);
+            showErrorFromCode(ErrorCodes.NETWORK_REQUEST_FAILED);
         }
-    }, [mode, fetchArticles, showToast]);
+    }, [mode, fetchArticles, showToast, showErrorFromCode]);
 
     /**
      * Delete article
@@ -428,17 +485,18 @@ export default function PublishPage() {
             const result: ApiResponse = await response.json();
 
             if (result.success) {
-                showToast('success', 'Article deleted');
+                showSuccessFromCode(SuccessCodes.ARTICLE_DELETED);
                 // Refresh articles list
                 const filter = mode === 'drafts' ? 'drafts' : mode === 'published' ? 'published' : undefined;
                 fetchArticles(filter);
             } else {
-                showToast('error', result.error || 'Failed to delete article');
+                showErrorFromCode(ErrorCodes.CONTENT_DELETE_FAILED);
             }
-        } catch {
-            showToast('error', 'Network error while deleting');
+        } catch (error) {
+            logger.error('Delete failed', error);
+            showErrorFromCode(ErrorCodes.NETWORK_REQUEST_FAILED);
         }
-    }, [mode, fetchArticles, showToast]);
+    }, [mode, fetchArticles, showSuccessFromCode, showErrorFromCode]);
 
     /**
      * Close preview
@@ -450,7 +508,7 @@ export default function PublishPage() {
     return (
         <div className={`${styles.page} ${isMobile ? styles.mobile : ''}`}>
             {/* Toast Notifications */}
-            <Toast toast={toast} onDismiss={() => setToast(null)} />
+            <EditorialToast toast={toast} onDismiss={() => setToast(null)} />
 
             {/* Editorial Toolbar - Full on desktop, simplified on mobile */}
             <EditorialToolbar

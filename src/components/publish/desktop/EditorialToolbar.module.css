@@ -129,36 +129,33 @@
    ---------------------------------------------------------------------------- */
 @media (max-width: 900px) {
     .toolbar {
-        padding: 0 1rem;
-        height: auto;
-        flex-wrap: wrap;
+        padding: 0 0.5rem;
+        height: 48px;
+        flex-wrap: nowrap;
         gap: 0.5rem;
-        padding-top: 0.5rem;
-        padding-bottom: 0.5rem;
     }
 
     .navGroup {
-        order: 1;
-        width: 100%;
+        flex: 1 1 auto;
+        min-width: 0;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
     }
 
     .navTab {
-        padding: 0.75rem 1rem;
-        font-size: 0.75rem;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.6875rem;
         white-space: nowrap;
+        flex-shrink: 0;
     }
 
     .draftIndicator {
-        order: 3;
         display: none;
     }
 
     .actionGroup {
-        order: 2;
-        width: 100%;
-        justify-content: flex-end;
+        flex: 0 0 auto;
+        width: auto;
     }
 
     .actionButton {
@@ -175,7 +172,7 @@
     .logoutAction {
         margin-left: 0;
         border-left: none;
-        padding-left: 0.5rem;
+        padding: 0.5rem 0.75rem;
     }
 }
 
