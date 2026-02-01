@@ -56,13 +56,15 @@
 /* Block wrapper */
 .blockWrapper {
     position: relative;
-    margin-bottom: 0.5rem;
+    margin-bottom: 2rem;
+    /* Initial increase in spacing */
 }
 
 /* Insert button between blocks */
 .insertButton {
     position: absolute;
-    top: -14px;
+    top: -18px;
+    /* Adjusted for larger gap */
     left: 50%;
     transform: translateX(-50%);
     width: 28px;
@@ -93,8 +95,8 @@
 .insertButtonEnd {
     display: block;
     width: 100%;
-    padding: 0.75rem;
-    margin-top: 0.5rem;
+    padding: 1rem;
+    margin-top: 1rem;
     background: none;
     border: 1px dashed #d0d0d0;
     border-radius: 4px;
@@ -451,25 +453,29 @@
     }
 }
 
-/* Move Controls */
+/* Move Controls - Redesigned as Horizontal Pill */
 .moveControls {
     position: absolute;
-    top: 50%;
-    right: 0.5rem;
-    transform: translateY(-50%);
+    top: -12px;
+    right: 12px;
     display: flex;
-    flex-direction: column;
-    gap: 4px;
+    flex-direction: row;
+    align-items: center;
+    background: white;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    border-radius: 20px;
+    padding: 0 4px;
     opacity: 0;
-    transition: opacity 0.15s ease;
-    z-index: 5;
-    background: rgba(255, 255, 255, 0.8);
-    border-radius: 4px;
-    padding: 2px;
+    transform: translateY(5px);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 20;
+    height: 28px;
 }
 
 .blockWrapper:hover .moveControls {
     opacity: 1;
+    transform: translateY(0);
 }
 
 .moveButton {
@@ -478,26 +484,48 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: white;
-    border: 1px solid #e0e0e0;
-    border-radius: 4px;
+    background: transparent;
+    border: none;
     color: #888;
     cursor: pointer;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     transition: all 0.1s ease;
     padding: 0;
+    border-radius: 50%;
 }
 
 .moveButton:hover:not(:disabled) {
     background: #f0f0f0;
     color: #333;
-    border-color: #ccc;
 }
 
 .moveButton:disabled {
     opacity: 0.3;
     cursor: not-allowed;
-    background: #f9f9f9;
+}
+
+.deleteActionButton {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    font-size: 0.75rem;
+    transition: all 0.1s ease;
+    padding: 0;
+    border-radius: 50%;
+    margin-left: 2px;
+}
+
+.deleteActionButton:hover {
+    background: #ffebee;
+    color: #c62828;
+    border-color: transparent;
+    /* Override previous border styling */
 }
 
 /* Add padding to blocks to prevent overlap with move controls */
@@ -513,6 +541,35 @@
    ============================================================================ */
 
 @media (max-width: 767px) {
+    .blockWrapper {
+        margin-bottom: 2.5rem;
+        /* Even more space on mobile */
+    }
+
+    /* Move controls on mobile - visible above block */
+    .moveControls {
+        top: -24px;
+        right: 0;
+        background: transparent;
+        border: none;
+        box-shadow: none;
+        padding: 0;
+        opacity: 1 !important;
+        transform: none !important;
+        justify-content: flex-end;
+        gap: 8px;
+    }
+
+    .moveButton,
+    .deleteActionButton {
+        background: white;
+        border: 1px solid #e0e0e0;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        width: 32px;
+        height: 32px;
+        font-size: 0.9rem;
+    }
+
     .blockEditor {
         border-radius: 8px;
         min-height: 300px;
@@ -570,31 +627,6 @@
     .blockWrapper:hover .moveControls,
     .blockWrapper .moveControls {
         opacity: 1;
-    }
-
-    /* Larger move controls for touch */
-    .moveControls {
-        position: relative;
-        top: auto;
-        right: auto;
-        transform: none;
-        flex-direction: row;
-        background: transparent;
-        padding: 0.5rem 0;
-        gap: 0.5rem;
-    }
-
-    .moveButton {
-        width: 36px;
-        height: 36px;
-        font-size: 0.875rem;
-    }
-
-    /* Block delete button touch-friendly */
-    .blockDelete {
-        width: 36px;
-        height: 36px;
-        font-size: 1rem;
     }
 
     /* Larger block content areas */

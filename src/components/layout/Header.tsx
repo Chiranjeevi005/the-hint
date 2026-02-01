@@ -194,16 +194,22 @@ export function Header({ latestUpdate, tickerHeadlines = [] }: HeaderProps) {
                     {/* Desktop Navigation */}
                     <nav className="hidden md:flex justify-between items-center py-2 relative">
                         <ul className="flex flex-1 justify-center gap-8 list-none m-0 p-0">
-                            {NAVIGATION_ITEMS.map((item) => (
-                                <li key={item.href}>
-                                    <Link
-                                        href={item.href}
-                                        className={`nav-link text-[13px] tracking-widest font-bold ${pathname === item.href ? 'text-[#111]' : 'text-[#444]'}`}
-                                    >
-                                        {item.label}
-                                    </Link>
-                                </li>
-                            ))}
+                            {NAVIGATION_ITEMS.map((item) => {
+                                const isActive = item.href === '/'
+                                    ? pathname === '/'
+                                    : pathname?.startsWith(item.href);
+
+                                return (
+                                    <li key={item.href}>
+                                        <Link
+                                            href={item.href}
+                                            className={`nav-link text-[13px] tracking-widest font-bold ${isActive ? 'text-[#111] after:scale-x-100' : 'text-[#444]'}`}
+                                        >
+                                            {item.label}
+                                        </Link>
+                                    </li>
+                                );
+                            })}
                         </ul>
 
                         {/* Subscribe Button - Absolute Right */}

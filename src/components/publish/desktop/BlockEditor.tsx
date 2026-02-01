@@ -447,6 +447,14 @@ export function BlockEditor({
                     >
                         ▼
                     </button>
+                    <button
+                        type="button"
+                        className={styles.deleteActionButton}
+                        onClick={() => deleteBlock(block.id)}
+                        title="Delete Block"
+                    >
+                        ✕
+                    </button>
                 </div>
 
                 <textarea
@@ -506,6 +514,14 @@ export function BlockEditor({
                         title="Move Down"
                     >
                         ▼
+                    </button>
+                    <button
+                        type="button"
+                        className={styles.deleteActionButton}
+                        onClick={() => deleteBlock(block.id)}
+                        title="Delete Block"
+                    >
+                        ✕
                     </button>
                 </div>
 
@@ -580,6 +596,14 @@ export function BlockEditor({
                         title="Move Down"
                     >
                         ▼
+                    </button>
+                    <button
+                        type="button"
+                        className={styles.deleteActionButton}
+                        onClick={() => deleteBlock(block.id)}
+                        title="Delete Block"
+                    >
+                        ✕
                     </button>
                 </div>
 

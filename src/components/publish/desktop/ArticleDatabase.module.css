@@ -217,7 +217,30 @@
 
 .cellPlacement {
     font-size: 0.75rem;
-    color: var(--color-muted);
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    line-height: 1;
+}
+
+.badgeLead {
+    background: #000;
+    color: #fff;
+    border: 1px solid #000;
+}
+
+.badgeTop {
+    background: #f5f5f5;
+    color: #666;
+    border: 1px solid #e0e0e0;
 }
 
 .placementHighlight {
@@ -287,11 +310,6 @@
    RESPONSIVE
    ---------------------------------------------------------------------------- */
 @media (max-width: 1024px) {
-
-    .thPlacement,
-    .cellPlacement {
-        display: none;
-    }
 
     .thActions,
     .cellActions {

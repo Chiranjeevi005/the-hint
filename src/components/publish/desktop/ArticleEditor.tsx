@@ -222,9 +222,9 @@ videoId: dQw4w9WgXcQ
                 </div>
             </div>
 
-            {/* RIGHT COLUMN: METADATA SIDEBAR - Hidden on mobile (shown in MobileSettingsPanel) */}
-            {!isMobile && (
-                <div className={styles.sidebar}>
+            {/* RIGHT COLUMN: SIDEBAR - Metadata or Preview (Preview works on mobile as modal) */}
+            {(!isMobile || showPreview) && (
+                <div className={`${styles.sidebar} ${isMobile && showPreview ? styles.mobilePreview : ''}`}>
                     {/* Preview Panel */}
                     {showPreview && previewData && (
                         <div className={styles.previewPanel}>

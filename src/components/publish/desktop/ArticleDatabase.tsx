@@ -234,17 +234,6 @@ export function ArticleDatabase({
                                         {article.placement !== 'standard' ? (
                                             <span className={`${styles.badge} ${article.placement === 'lead' ? styles.badgeLead : styles.badgeTop}`}>
                                                 {getPlacementLabel(article.placement)}
-                                                <button
-                                                    type="button"
-                                                    className={styles.removePlacementBtn}
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        onRemovePlacement(article);
-                                                    }}
-                                                    title="Remove placement"
-                                                >
-                                                    ×
-                                                </button>
                                             </span>
                                         ) : (
                                             <span className={styles.textMuted}>—</span>
